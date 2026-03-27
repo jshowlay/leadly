@@ -1,10 +1,10 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect } from "react";
-import { Button, buttonVariants } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 
+/**
+ * No Tailwind, no next/link — avoids broken chunks causing “missing required error components”.
+ */
 export default function Error({
   error,
   reset,
@@ -16,39 +16,66 @@ export default function Error({
     console.error(error);
   }, [error]);
 
+  const msg =
+    process.env.NODE_ENV === "development"
+      ? error.message || "An unexpected error occurred."
+      : "An unexpected error occurred. Check server logs and environment variables.";
+
   return (
-    <main className="min-h-screen bg-white">
-      <header className="w-full bg-black py-4 text-white">
-        <div className="container-page flex items-center justify-between">
-          <p className="text-lg font-semibold">Leadly</p>
-          <Link
-            href="/"
-            className={cn(
-              buttonVariants({ variant: "outline" }),
-              "bg-white text-black hover:bg-slate-100"
-            )}
-          >
-            Home
-          </Link>
+    <main style={{ minHeight: "100vh", background: "#fff", fontFamily: "system-ui, sans-serif" }}>
+      <header
+        style={{
+          width: "100%",
+          background: "#000",
+          color: "#fff",
+          padding: "1rem 0",
+        }}
+      >
+        <div style={{ maxWidth: "72rem", margin: "0 auto", padding: "0 1rem" }}>
+          <p style={{ fontSize: "1.125rem", fontWeight: 600 }}>Leadly</p>
         </div>
       </header>
-      <section className="container-page py-10">
-        <h1 className="text-xl font-semibold text-slate-900">Something went wrong</h1>
-        <p className="mt-2 text-sm text-slate-600">
-          {process.env.NODE_ENV === "development"
-            ? error.message || "An unexpected error occurred."
-            : "An unexpected error occurred. If this persists, check server logs and environment variables (e.g. DATABASE_URL, STRIPE_SECRET_KEY)."}
-        </p>
+      <section style={{ maxWidth: "42rem", margin: "0 auto", padding: "2.5rem 1rem" }}>
+        <h1 style={{ fontSize: "1.25rem", fontWeight: 600, color: "#0f172a" }}>Something went wrong</h1>
+        <p style={{ marginTop: "0.5rem", fontSize: "0.875rem", color: "#475569" }}>{msg}</p>
         {process.env.NODE_ENV === "development" && error.digest ? (
-          <p className="mt-1 font-mono text-xs text-slate-500">Digest: {error.digest}</p>
+          <p style={{ marginTop: "0.25rem", fontFamily: "monospace", fontSize: "0.75rem", color: "#64748b" }}>
+            Digest: {error.digest}
+          </p>
         ) : null}
-        <div className="mt-6 flex flex-wrap gap-3">
-          <Button type="button" onClick={() => reset()}>
+        <div style={{ marginTop: "1.5rem", display: "flex", flexWrap: "wrap", gap: "0.75rem" }}>
+          <button
+            type="button"
+            onClick={() => reset()}
+            style={{
+              padding: "0.5rem 1rem",
+              fontSize: "0.875rem",
+              fontWeight: 500,
+              color: "#fff",
+              background: "#0f172a",
+              border: "none",
+              borderRadius: "0.375rem",
+              cursor: "pointer",
+            }}
+          >
             Try again
-          </Button>
-          <Link href="/" className={cn(buttonVariants({ variant: "outline" }))}>
+          </button>
+          <a
+            href="/"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              padding: "0.5rem 1rem",
+              fontSize: "0.875rem",
+              fontWeight: 500,
+              color: "#0f172a",
+              border: "1px solid #cbd5e1",
+              borderRadius: "0.375rem",
+              textDecoration: "none",
+            }}
+          >
             Go home
-          </Link>
+          </a>
         </div>
       </section>
     </main>

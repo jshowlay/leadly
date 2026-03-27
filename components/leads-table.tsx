@@ -9,6 +9,33 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
+function priorityBadge(priority: string | null | undefined) {
+  const p = (priority ?? "").toLowerCase();
+  if (p === "high") {
+    return (
+      <span className="rounded border border-amber-400 bg-amber-100 px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-amber-900">
+        High
+      </span>
+    );
+  }
+  if (p === "medium") {
+    return (
+      <span className="rounded bg-slate-200 px-2 py-0.5 text-xs font-medium uppercase text-slate-800">Medium</span>
+    );
+  }
+  if (p === "low") {
+    return <span className="rounded bg-slate-100 px-2 py-0.5 text-xs text-slate-600">Low</span>;
+  }
+  return <span className="text-slate-500">—</span>;
+}
+
+function opportunityLabel(type: string | null | undefined) {
+  if (!type) return "—";
+  return (
+    <span className="rounded bg-violet-50 px-2 py-0.5 font-mono text-xs text-violet-800">{type.replace(/_/g, " ")}</span>
+  );
+}
+
 export function LeadsTable({ leads }: { leads: Lead[] }) {
   return (
     <Table>
@@ -17,6 +44,8 @@ export function LeadsTable({ leads }: { leads: Lead[] }) {
           <TableHead>Name</TableHead>
           <TableHead>Niche</TableHead>
           <TableHead>Type</TableHead>
+          <TableHead>Priority</TableHead>
+          <TableHead>Opportunity</TableHead>
           <TableHead>Address</TableHead>
           <TableHead>Website</TableHead>
           <TableHead>Phone</TableHead>
@@ -30,7 +59,14 @@ export function LeadsTable({ leads }: { leads: Lead[] }) {
       </TableHeader>
       <TableBody>
         {leads.map((lead, index) => (
-          <TableRow key={`${lead.name}-${index}`}>
+          <TableRow
+            key={`${lead.placeId ?? lead.name}-${index}`}
+            className={
+              (lead.priority ?? "").toLowerCase() === "high"
+                ? "bg-amber-50/80 hover:bg-amber-50"
+                : undefined
+            }
+          >
             <TableCell className="font-medium">{lead.name}</TableCell>
             <TableCell>
               {lead.niche ? (
@@ -48,6 +84,8 @@ export function LeadsTable({ leads }: { leads: Lead[] }) {
                 "N/A"
               )}
             </TableCell>
+            <TableCell>{priorityBadge(lead.priority)}</TableCell>
+            <TableCell className="max-w-[140px]">{opportunityLabel(lead.opportunityType)}</TableCell>
             <TableCell className="max-w-[220px]">{lead.address ?? "N/A"}</TableCell>
             <TableCell>
               {lead.website ? (
@@ -67,11 +105,11 @@ export function LeadsTable({ leads }: { leads: Lead[] }) {
             <TableCell>{lead.rating ?? "N/A"}</TableCell>
             <TableCell>{lead.reviewCount ?? "N/A"}</TableCell>
             <TableCell>
-              <span className="rounded bg-slate-100 px-2 py-1 font-semibold text-slate-900">
-                {lead.score ?? "-"}
+              <span className="inline-flex min-w-[2.25rem] items-center justify-center rounded-md border border-slate-200 bg-white px-2 py-1 text-sm font-bold tabular-nums text-slate-900 shadow-sm">
+                {lead.score ?? "—"}
               </span>
             </TableCell>
-            <TableCell className="max-w-[280px]">{lead.reason ?? "-"}</TableCell>
+            <TableCell className="max-w-[300px] text-sm leading-snug text-slate-800">{lead.reason ?? "—"}</TableCell>
             <TableCell className="space-y-2">
               <p className="max-w-[320px] truncate text-sm text-slate-700" title={lead.outreach ?? "-"}>
                 {lead.outreach ?? "-"}

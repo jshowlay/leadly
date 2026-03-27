@@ -15,8 +15,9 @@ const defaultNicheConfig: NicheConfig = {
   idealCustomerDescription: "local business that wants more qualified inbound leads",
 };
 
-export function getNicheConfig(niche: string): NicheConfig {
-  const normalized = niche.trim().toLowerCase();
+export function getNicheConfig(niche: string | null | undefined): NicheConfig {
+  const raw = typeof niche === "string" ? niche : "";
+  const normalized = raw.trim().toLowerCase();
   if (normalized.includes("dentist") || normalized.includes("dental")) {
     return dentistNicheConfig;
   }

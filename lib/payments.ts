@@ -2,6 +2,20 @@ import type Stripe from "stripe";
 import { markSearchPaidFromStripe } from "@/lib/db";
 import { getStripe } from "@/lib/stripe";
 
+function isTransientNetworkError(e: unknown): boolean {
+  const msg = e instanceof Error ? e.message : String(e);
+  return (
+    msg.includes("ECONNRESET") ||
+    msg.includes("ETIMEDOUT") ||
+    msg.includes("socket hang up") ||
+    msg.includes("EPIPE")
+  );
+}
+
+async function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 export async function fulfillCheckoutSession(session: Stripe.Checkout.Session): Promise<{
   ok: boolean;
   reason?: string;
@@ -38,20 +52,29 @@ export async function fulfillCheckoutSession(session: Stripe.Checkout.Session): 
 export async function verifyAndFulfillCheckoutSession(
   sessionId: string
 ): Promise<{ ok: true; searchId: number } | { ok: false; message: string }> {
-  try {
-    const stripe = getStripe();
-    const session = await stripe.checkout.sessions.retrieve(sessionId);
-    const result = await fulfillCheckoutSession(session);
-    if (result.ok && result.searchId !== undefined) {
-      return { ok: true, searchId: result.searchId };
+  const maxAttempts = 2;
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    try {
+      const stripe = getStripe();
+      const session = await stripe.checkout.sessions.retrieve(sessionId);
+      const result = await fulfillCheckoutSession(session);
+      if (result.ok && result.searchId !== undefined) {
+        return { ok: true, searchId: result.searchId };
+      }
+      return { ok: false, message: result.reason ?? "Could not unlock your lead pack." };
+    } catch (e) {
+      console.error("[verifyAndFulfillCheckoutSession]", e);
+      const msg = e instanceof Error ? e.message : "Verification failed.";
+      if (msg.includes("STRIPE_SECRET_KEY")) {
+        return { ok: false, message: "Payments are not configured (missing STRIPE_SECRET_KEY)." };
+      }
+      if (isTransientNetworkError(e) && attempt < maxAttempts) {
+        console.warn("[verifyAndFulfillCheckoutSession] retrying after transient error", { attempt, msg });
+        await sleep(400 * attempt);
+        continue;
+      }
+      return { ok: false, message: msg };
     }
-    return { ok: false, message: result.reason ?? "Could not unlock your lead pack." };
-  } catch (e) {
-    console.error("[verifyAndFulfillCheckoutSession]", e);
-    const msg = e instanceof Error ? e.message : "Verification failed.";
-    if (msg.includes("STRIPE_SECRET_KEY")) {
-      return { ok: false, message: "Payments are not configured (missing STRIPE_SECRET_KEY)." };
-    }
-    return { ok: false, message: msg };
   }
+  return { ok: false, message: "Verification failed after retries." };
 }

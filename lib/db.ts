@@ -28,6 +28,21 @@ async function resetPool(reason: string) {
   }
 }
 
+/** Avoid uncaught exceptions when the TCP connection is already dead — `release()` can throw. */
+function safeReleaseClient(client: PoolClient, destroy?: boolean) {
+  try {
+    if (destroy) {
+      client.release(true);
+    } else {
+      client.release();
+    }
+  } catch (e) {
+    console.warn("[db] client.release failed (connection may already be closed)", {
+      error: e instanceof Error ? e.message : String(e),
+    });
+  }
+}
+
 /** Use before calling DB from Server Components to avoid throwing generic production errors. */
 export function isDatabaseConfigured(): boolean {
   return Boolean(process.env.DATABASE_URL?.trim());
@@ -107,6 +122,8 @@ export async function ensureSchema() {
     await client.query(`ALTER TABLE leads ADD COLUMN IF NOT EXISTS outreach TEXT;`);
     await client.query(`ALTER TABLE leads ADD COLUMN IF NOT EXISTS metadata JSONB DEFAULT '{}'::jsonb;`);
     await client.query(`ALTER TABLE leads ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'new';`);
+    await client.query(`ALTER TABLE leads ADD COLUMN IF NOT EXISTS opportunity_type TEXT;`);
+    await client.query(`ALTER TABLE leads ADD COLUMN IF NOT EXISTS priority TEXT;`);
 
     await client.query(`ALTER TABLE searches ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'pending';`);
     await client.query(`ALTER TABLE searches ADD COLUMN IF NOT EXISTS result_count INTEGER DEFAULT 0;`);
@@ -130,7 +147,7 @@ export async function ensureSchema() {
     } catch (error) {
       const retryable = isConnectionError(error);
       if (retryable && attempt === 1) {
-        client.release(true);
+        safeReleaseClient(client, true);
         releasedHard = true;
         await resetPool("retrying ensureSchema after connection failure");
         continue;
@@ -138,7 +155,7 @@ export async function ensureSchema() {
       throw error;
     } finally {
       if (!releasedHard) {
-        client.release();
+        safeReleaseClient(client);
       }
     }
   }
@@ -160,7 +177,7 @@ export async function createSearch(niche: string, location: string) {
       const retryable = isConnectionError(error);
       if (retryable && attempt === 1) {
         if (client) {
-          client.release(true);
+          safeReleaseClient(client, true);
           releasedHard = true;
         }
         await resetPool("retrying createSearch after connection failure");
@@ -169,7 +186,7 @@ export async function createSearch(niche: string, location: string) {
       throw error;
     } finally {
       if (client && !releasedHard) {
-        client.release();
+        safeReleaseClient(client);
       }
     }
   }
@@ -193,7 +210,7 @@ export async function setSearchStatus(
     } catch (error) {
       const retryable = isConnectionError(error);
       if (retryable && attempt === 1) {
-        client.release(true);
+        safeReleaseClient(client, true);
         releasedHard = true;
         await resetPool("retrying setSearchStatus after connection failure");
         continue;
@@ -201,7 +218,7 @@ export async function setSearchStatus(
       throw error;
     } finally {
       if (!releasedHard) {
-        client.release();
+        safeReleaseClient(client);
       }
     }
   }
@@ -216,8 +233,8 @@ export async function insertLeads(searchId: number, leads: Lead[]): Promise<numb
       for (const lead of leads) {
         await client.query(
           `INSERT INTO leads
-            (search_id, place_id, niche, name, website, email, phone, rating, review_count, score, reason, outreach, address, maps_url, primary_type, metadata, status)
-           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)
+            (search_id, place_id, niche, name, website, email, phone, rating, review_count, score, reason, outreach, address, maps_url, primary_type, metadata, status, opportunity_type, priority)
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19)
            ON CONFLICT (search_id, place_id) DO NOTHING`,
           [
             searchId,
@@ -237,6 +254,8 @@ export async function insertLeads(searchId: number, leads: Lead[]): Promise<numb
             lead.primaryType,
             lead.metadata ?? {},
             lead.status ?? "new",
+            lead.opportunityType ?? null,
+            lead.priority ?? null,
           ]
         );
       }
@@ -262,7 +281,7 @@ export async function insertLeads(searchId: number, leads: Lead[]): Promise<numb
       });
 
       if (retryable && attempt === 1) {
-        client.release(true);
+        safeReleaseClient(client, true);
         releasedHard = true;
         await resetPool("retrying insertLeads after connection failure");
         continue;
@@ -271,7 +290,7 @@ export async function insertLeads(searchId: number, leads: Lead[]): Promise<numb
       throw error;
     } finally {
       if (!releasedHard) {
-        client.release();
+        safeReleaseClient(client);
       }
     }
   }
@@ -281,10 +300,11 @@ export async function insertLeads(searchId: number, leads: Lead[]): Promise<numb
 
 export async function getSearchWithLeads(searchId: number): Promise<SearchWithLeads | null> {
   for (let attempt = 1; attempt <= 2; attempt += 1) {
-    await ensureSchema();
-    const client = await getPool().connect();
+    let client: PoolClient | null = null;
     let releasedHard = false;
     try {
+      await ensureSchema();
+      client = await getPool().connect();
       const searchRes = await client.query(
         "SELECT id, niche, location, status, result_count, error_message, is_paid, created_at FROM searches WHERE id = $1",
         [searchId]
@@ -293,7 +313,7 @@ export async function getSearchWithLeads(searchId: number): Promise<SearchWithLe
       if (!search) return null;
 
       const leadsRes = await client.query(
-        "SELECT place_id, niche, name, address, website, email, phone, rating, review_count, score, reason, outreach, maps_url, primary_type, metadata, status, created_at FROM leads WHERE search_id = $1 ORDER BY score DESC NULLS LAST",
+        "SELECT place_id, niche, name, address, website, email, phone, rating, review_count, score, reason, outreach, maps_url, primary_type, metadata, status, opportunity_type, priority, created_at FROM leads WHERE search_id = $1 ORDER BY score DESC NULLS LAST",
         [searchId]
       );
 
@@ -312,6 +332,8 @@ export async function getSearchWithLeads(searchId: number): Promise<SearchWithLe
         score: r.score ?? undefined,
         reason: r.reason ?? undefined,
         outreach: r.outreach ?? undefined,
+        opportunityType: r.opportunity_type ?? null,
+        priority: r.priority ?? null,
         status: r.status ?? undefined,
         createdAt: r.created_at ? new Date(r.created_at).toISOString() : undefined,
         metadata: r.metadata ?? {},
@@ -331,15 +353,17 @@ export async function getSearchWithLeads(searchId: number): Promise<SearchWithLe
     } catch (error) {
       const retryable = isConnectionError(error);
       if (retryable && attempt === 1) {
-        client.release(true);
-        releasedHard = true;
+        if (client) {
+          safeReleaseClient(client, true);
+          releasedHard = true;
+        }
         await resetPool("retrying getSearchWithLeads after connection failure");
         continue;
       }
       throw error;
     } finally {
-      if (!releasedHard) {
-        client.release();
+      if (client && !releasedHard) {
+        safeReleaseClient(client);
       }
     }
   }
@@ -374,7 +398,7 @@ export async function getSearchForExport(searchId: number): Promise<{
 
     const leadsRes = await client.query(
       `SELECT
-         name, address, website, phone, email, rating, review_count, score, reason, outreach, primary_type, maps_url, created_at
+         name, address, website, phone, email, rating, review_count, score, reason, outreach, priority, opportunity_type, primary_type, maps_url, created_at
        FROM leads
        WHERE search_id = $1
        ORDER BY score DESC NULLS LAST, created_at DESC`,
@@ -392,6 +416,8 @@ export async function getSearchForExport(searchId: number): Promise<{
       score: r.score ?? null,
       reason: r.reason ?? null,
       outreach: r.outreach ?? null,
+      priority: r.priority ?? null,
+      opportunity_type: r.opportunity_type ?? null,
       primary_type: r.primary_type ?? null,
       maps_url: r.maps_url ?? null,
       created_at: r.created_at ? new Date(r.created_at).toISOString() : null,
@@ -399,7 +425,7 @@ export async function getSearchForExport(searchId: number): Promise<{
 
     return { search, rows };
   } finally {
-    client.release();
+    safeReleaseClient(client);
   }
 }
 
@@ -436,7 +462,7 @@ export async function getRecentSearches(limit = 20) {
       leadsCount: Number(r.leads_count ?? 0),
     }));
   } finally {
-    client.release();
+    safeReleaseClient(client);
   }
 }
 
@@ -456,6 +482,8 @@ export async function getRecentLeads(limit = 50) {
          score,
          reason,
          outreach,
+         priority,
+         opportunity_type,
          status,
          created_at
        FROM leads
@@ -474,11 +502,13 @@ export async function getRecentLeads(limit = 50) {
       score: r.score as number | null,
       reason: r.reason as string | null,
       outreach: r.outreach as string | null,
+      priority: (r.priority as string | null) ?? null,
+      opportunityType: (r.opportunity_type as string | null) ?? null,
       status: r.status as string | null,
       createdAt: r.created_at as Date,
     }));
   } finally {
-    client.release();
+    safeReleaseClient(client);
   }
 }
 
@@ -493,7 +523,7 @@ export async function getSearchRowForPayment(
     if (!row) return null;
     return { id: row.id as number, isPaid: Boolean(row.is_paid) };
   } finally {
-    client.release();
+    safeReleaseClient(client);
   }
 }
 
@@ -505,21 +535,51 @@ export async function markSearchPaidFromStripe(params: {
   email: string | null;
 }): Promise<void> {
   await ensureSchema();
-  const client = await getPool().connect();
-  try {
-    await client.query("BEGIN");
-    await client.query("UPDATE searches SET is_paid = true WHERE id = $1", [params.searchId]);
-    await client.query(
-      `INSERT INTO payments (search_id, stripe_session_id, amount, status, email)
-       VALUES ($1, $2, $3, $4, $5)
-       ON CONFLICT (stripe_session_id) DO NOTHING`,
-      [params.searchId, params.stripeSessionId, params.amount, params.status, params.email]
-    );
-    await client.query("COMMIT");
-  } catch (error) {
-    await client.query("ROLLBACK");
-    throw error;
-  } finally {
-    client.release();
+  for (let attempt = 1; attempt <= 2; attempt += 1) {
+    const client = await getPool().connect();
+    let releasedHard = false;
+    try {
+      await client.query("BEGIN");
+      await client.query("UPDATE searches SET is_paid = true WHERE id = $1", [params.searchId]);
+      await client.query(
+        `INSERT INTO payments (search_id, stripe_session_id, amount, status, email)
+         VALUES ($1, $2, $3, $4, $5)
+         ON CONFLICT (stripe_session_id) DO NOTHING`,
+        [params.searchId, params.stripeSessionId, params.amount, params.status, params.email]
+      );
+      await client.query("COMMIT");
+      return;
+    } catch (error) {
+      let rollbackError: unknown = null;
+      try {
+        await client.query("ROLLBACK");
+      } catch (rbError) {
+        rollbackError = rbError;
+      }
+
+      const retryable = isConnectionError(error) || isConnectionError(rollbackError);
+      console.error("[db] markSearchPaidFromStripe failed", {
+        searchId: params.searchId,
+        attempt,
+        retryable,
+        error: error instanceof Error ? error.message : String(error),
+        rollbackError:
+          rollbackError instanceof Error ? rollbackError.message : rollbackError ? String(rollbackError) : null,
+      });
+
+      if (retryable && attempt === 1) {
+        safeReleaseClient(client, true);
+        releasedHard = true;
+        await resetPool("retrying markSearchPaidFromStripe after connection failure");
+        continue;
+      }
+
+      throw error;
+    } finally {
+      if (!releasedHard) {
+        safeReleaseClient(client);
+      }
+    }
   }
+  throw new Error("Failed to mark search paid after retries.");
 }

@@ -20,6 +20,8 @@ const exportColumns: Array<keyof ExportLeadRow> = [
   "rating",
   "review_count",
   "score",
+  "priority",
+  "opportunity_type",
   "reason",
   "outreach",
   "primary_type",

@@ -1,23 +1,47 @@
 import OpenAI from "openai";
 import { z } from "zod";
+import {
+  classifyOpportunityType,
+  classifyPriorityFromScore,
+  computeBaseScore,
+} from "@/lib/dentist-scoring";
 import { Lead, NicheConfig } from "@/lib/types";
 
-const aiOutputSchema = z.object({
+const genericAiOutputSchema = z.object({
   score: z.number().int().min(1).max(100),
   reason: z.string().min(1).max(140),
   outreach: z.string().min(1).max(280),
 });
 
-const fallback = {
+const dentistAiOutputSchema = z.object({
+  adjustment: z.number(),
+  reason: z.string().min(1).max(140),
+  outreach: z.string().min(1).max(280),
+});
+
+const DENTIST_FALLBACK_REASON =
+  "Local dental practice with measurable opportunity to increase patient acquisition.";
+const DENTIST_FALLBACK_OUTREACH =
+  "Hi, I came across your practice and thought there may be an opportunity to help you bring in more new patients — open to a quick idea?";
+
+const genericFallback = {
   score: 50,
   reason: "Potential local business lead with possible growth opportunity.",
   outreach:
     "Hi, I came across your business and thought there may be an opportunity to help you generate more local customers.",
 };
 
-function buildDentistPrompt(lead: Lead, nicheConfig: NicheConfig) {
-  if (nicheConfig.id !== "dentists") {
-    return `You are an AI sales analyst for local businesses.
+function clampScore(score: number): number {
+  return Math.min(100, Math.max(1, Math.round(score)));
+}
+
+function clampAdjustment(n: number): number {
+  if (Number.isNaN(n)) return 0;
+  return Math.min(10, Math.max(-10, Math.round(n)));
+}
+
+function buildGenericPrompt(lead: Lead, nicheConfig: NicheConfig) {
+  return `You are an AI sales analyst for local businesses.
 Analyze this business as a potential client for lead generation services.
 
 Return ONLY valid JSON:
@@ -46,145 +70,175 @@ Rules:
 - reason under 140 characters
 - outreach under 280 characters
 `;
-  }
+}
 
-  return `You are an AI sales analyst specializing in local dental practices.
+function buildDentistStrategistPrompt(lead: Lead, opportunityType: string, baseScore: number) {
+  return `You are a sales strategist specializing in helping dental practices attract more patients.
 
-Analyze this business as a potential client for services that help dentists get more patients and increase bookings.
+Your job is to analyze this business and generate highly specific, data-aware insights.
 
 Return ONLY valid JSON:
+
 {
-  "score": integer from 1 to 100,
-  "reason": "one concise sentence",
+  "adjustment": number between -10 and +10,
+  "reason": "one specific sentence referencing real data",
   "outreach": "a short personalized outreach message"
 }
 
-Scoring guidance:
-- prioritize dental practices that could benefit from more patient acquisition
-- score higher if:
-  - website exists but may not convert well
-  - moderate reviews (10-150)
-  - rating is good but not dominant
-  - likely independent practice
-- score lower if:
-  - large chain or highly optimized brand
-  - extremely strong digital presence
-  - missing too much data
-
-Niche profile:
-- Ideal customer: ${nicheConfig.idealCustomerDescription}
-- Scoring factors: ${nicheConfig.scoringFactors.join("; ")}
-- Disqualifiers: ${nicheConfig.disqualifiers.join("; ")}
+Rules:
+- reason must reference actual signals (reviews, rating, website)
+- DO NOT use generic phrases like "great opportunity"
+- outreach must feel human, not robotic
+- outreach must reference patients, bookings, or appointments
+- outreach must include a subtle observation from the data
+- keep reason under 140 characters
+- keep outreach under 280 characters
+- JSON only
 
 Business:
 Name: ${lead.name}
 Type: ${lead.primaryType ?? "N/A"}
-Address: ${lead.address ?? "N/A"}
-Website: ${lead.website ?? "N/A"}
-Phone: ${lead.phone ?? "N/A"}
-Rating: ${lead.rating ?? "N/A"}
-Review Count: ${lead.reviewCount ?? "N/A"}
-
-Rules:
-- return JSON only
-- reason must be under 140 characters
-- outreach must feel human and specific
-- outreach must reference patient growth or bookings
-- no markdown
-- JSON only
-- keep reason under 140 characters
-- keep outreach under 280 characters
+Website: ${lead.website ?? "none"}
+Rating: ${lead.rating ?? "unknown"}
+Review Count: ${lead.reviewCount ?? "unknown"}
+Opportunity Type: ${opportunityType}
+Base Score: ${baseScore}
 `;
 }
 
-function clampScore(score: number): number {
-  return Math.min(100, Math.max(1, Math.round(score)));
-}
+const GENERIC_REASON_BAN =
+  /\b(great opportunity|potential opportunity|this is a good lead|good lead|strong opportunity)\b/i;
 
-function applyRuleBasedBoosts(baseScore: number, lead: Lead): number {
-  let adjusted = baseScore;
-  const reviewCount = lead.reviewCount ?? 0;
-  const rating = lead.rating ?? null;
-
-  if (reviewCount < 20) adjusted += 10;
-  if (!lead.website) adjusted += 15;
-  if (rating !== null && rating >= 3.8 && rating <= 4.5) adjusted += 5;
-  if (reviewCount > 300) adjusted -= 10;
-
-  return clampScore(adjusted);
-}
-
-function hasStrongBrandingSignals(lead: Lead): boolean {
-  const name = (lead.name ?? "").toLowerCase();
-  const website = (lead.website ?? "").toLowerCase();
-  return (
-    name.includes("group") ||
-    name.includes("corporate") ||
-    name.includes("national") ||
-    website.includes("franchise")
-  );
-}
-
-function improveReason(lead: Lead, reason: string): string {
-  const reviewCount = lead.reviewCount ?? null;
-  const rating = lead.rating ?? null;
-  const isGeneric = /potential local business lead/i.test(reason);
-  if (reviewCount !== null && reviewCount < 50) {
-    return "Good reviews but limited volume suggests room to grow patient flow.";
+function structuredDentistReason(lead: Lead): string {
+  const rc = lead.reviewCount;
+  const rating = lead.rating;
+  if (rc != null && rc < 20) {
+    return `Only ${rc} reviews suggests strong opportunity to increase patient volume`;
   }
-  if (rating !== null && rating >= 4 && rating <= 4.7) {
-    return "Established practice with moderate reviews and potential for more bookings.";
+  if (rating != null && rc != null && rc >= 20 && rc < 100) {
+    return `${rating} rating with moderate reviews indicates room for more bookings`;
+  }
+  if (rc != null && rc >= 100 && rating != null && rating < 4.2) {
+    return `Established practice but ${rating} rating suggests underutilized reputation versus volume`;
   }
   if (!lead.website) {
-    return "Local dentist with solid reputation but under-optimized online presence.";
+    return "No public website limits new patient discovery and online booking paths";
   }
-  if (isGeneric) {
-    return "Local dental practice with room to improve patient flow and online booking conversion.";
-  }
-  return reason.length > 140 ? `${reason.slice(0, 137)}...` : reason;
+  return DENTIST_FALLBACK_REASON;
 }
 
-function improveOutreach(lead: Lead, outreach: string): string {
-  const reviewCount = lead.reviewCount ?? null;
-  const websitePhrase = lead.website ? "your online presence" : "your website presence";
-  let candidate = outreach;
-  if (!/patients|appointments|bookings/i.test(candidate)) {
-    if (reviewCount !== null && reviewCount > 0) {
-      candidate = `Hi, I came across your practice and noticed you have great reviews. We help dentists turn that into more booked appointments and new patients. Open to a quick idea?`;
+function sanitizeDentistReason(lead: Lead, reason: string): string {
+  const trimmed = reason.trim().slice(0, 140);
+  if (!trimmed || GENERIC_REASON_BAN.test(trimmed)) {
+    return structuredDentistReason(lead);
+  }
+  return trimmed;
+}
+
+function sanitizeDentistOutreach(lead: Lead, outreach: string): string {
+  let candidate = outreach.trim();
+  const hasPatientAngle = /patients?|appointments?|bookings?/i.test(candidate);
+  const rating = lead.rating;
+  const rc = lead.reviewCount;
+
+  if (!hasPatientAngle) {
+    if (rating != null && rc != null) {
+      candidate = `Hi — I noticed your practice has a solid ${rating} rating but only around ${rc} reviews. We help dentists turn that into more booked appointments — would you be open to a quick idea?`;
     } else {
-      candidate = `Hi, I came across your practice and think there is an opportunity to drive more new patients through ${websitePhrase} and booked appointments. Open to a quick idea?`;
+      candidate = DENTIST_FALLBACK_OUTREACH;
     }
   }
+
   return candidate.length > 280 ? `${candidate.slice(0, 277)}...` : candidate;
 }
 
-function postProcessDentistScore(lead: Lead, scored: Pick<Lead, "score" | "reason" | "outreach">) {
-  const disqualified =
-    (!lead.phone && !lead.website) ||
-    ((lead.reviewCount ?? 0) > 500 && hasStrongBrandingSignals(lead));
-  const boosted = applyRuleBasedBoosts(scored.score ?? fallback.score, lead);
-  const adjustedScore = disqualified ? Math.max(1, boosted - 25) : boosted;
-  return {
-    score: clampScore(adjustedScore),
-    reason: improveReason(lead, scored.reason ?? fallback.reason),
-    outreach: improveOutreach(lead, scored.outreach ?? fallback.outreach),
-  };
+export type ScoreLeadResult = Pick<Lead, "score" | "reason" | "outreach" | "opportunityType" | "priority"> & {
+  usedAiFallback: boolean;
+  /** Populated for dentist niche: base rule score and AI delta for logging. */
+  dentistScoringMeta?: { baseScore: number; aiAdjustment: number };
+};
+
+async function scoreDentistLead(lead: Lead): Promise<ScoreLeadResult> {
+  const baseScore = computeBaseScore(lead);
+  const opportunityType = classifyOpportunityType(lead);
+  const apiKey = process.env.OPENAI_API_KEY;
+  const prompt = buildDentistStrategistPrompt(lead, opportunityType, baseScore);
+
+  if (!apiKey) {
+    console.warn("[score-lead] Missing OPENAI_API_KEY; dentist fallback (rule-only + templates).");
+    const finalScore = clampScore(baseScore);
+    return {
+      score: finalScore,
+      reason: structuredDentistReason(lead),
+      outreach: sanitizeDentistOutreach(lead, DENTIST_FALLBACK_OUTREACH),
+      opportunityType,
+      priority: classifyPriorityFromScore(finalScore),
+      usedAiFallback: true,
+      dentistScoringMeta: { baseScore, aiAdjustment: 0 },
+    };
+  }
+
+  try {
+    const client = new OpenAI({ apiKey });
+    const completion = await client.chat.completions.create({
+      model: "gpt-4o-mini",
+      temperature: 0.25,
+      response_format: { type: "json_object" },
+      messages: [{ role: "user", content: prompt }],
+    });
+
+    const content = completion.choices[0]?.message?.content ?? "{}";
+    const parsed = dentistAiOutputSchema.parse(JSON.parse(content));
+    const adj = clampAdjustment(parsed.adjustment);
+    const finalScore = clampScore(baseScore + adj);
+
+    const reason = sanitizeDentistReason(lead, parsed.reason);
+    const outreach = sanitizeDentistOutreach(lead, parsed.outreach);
+
+    console.log(
+      `[score-lead] dentist place="${lead.name}" base=${baseScore} adj=${adj} final=${finalScore} opp=${opportunityType}`
+    );
+
+    return {
+      score: finalScore,
+      reason,
+      outreach,
+      opportunityType,
+      priority: classifyPriorityFromScore(finalScore),
+      usedAiFallback: false,
+      dentistScoringMeta: { baseScore, aiAdjustment: adj },
+    };
+  } catch (err) {
+    console.error("[score-lead] Dentist AI scoring failed; using rule score + fallbacks.", err);
+    const finalScore = clampScore(baseScore);
+    return {
+      score: finalScore,
+      reason: structuredDentistReason(lead),
+      outreach: sanitizeDentistOutreach(lead, DENTIST_FALLBACK_OUTREACH),
+      opportunityType,
+      priority: classifyPriorityFromScore(finalScore),
+      usedAiFallback: true,
+      dentistScoringMeta: { baseScore, aiAdjustment: 0 },
+    };
+  }
 }
 
-export async function scoreLead(
-  lead: Lead,
-  nicheConfig: NicheConfig
-): Promise<Pick<Lead, "score" | "reason" | "outreach">> {
+async function scoreGenericLead(lead: Lead, nicheConfig: NicheConfig): Promise<ScoreLeadResult> {
+  const apiKey = process.env.OPENAI_API_KEY;
+  const prompt = buildGenericPrompt(lead, nicheConfig);
+
+  if (!apiKey) {
+    console.warn("[score-lead] Missing OPENAI_API_KEY; using generic fallback scoring.");
+    return {
+      ...genericFallback,
+      opportunityType: null,
+      priority: classifyPriorityFromScore(genericFallback.score),
+      usedAiFallback: true,
+    };
+  }
+
   try {
-    const apiKey = process.env.OPENAI_API_KEY;
-    const prompt = buildDentistPrompt(lead, nicheConfig);
-    if (!apiKey) {
-      console.warn("[score-lead] Missing OPENAI_API_KEY; using fallback scoring.");
-      return nicheConfig.id === "dentists" ? postProcessDentistScore(lead, fallback) : fallback;
-    }
-
     const client = new OpenAI({ apiKey });
-
     const completion = await client.chat.completions.create({
       model: "gpt-4o-mini",
       temperature: 0.3,
@@ -193,12 +247,32 @@ export async function scoreLead(
     });
 
     const content = completion.choices[0]?.message?.content ?? "{}";
-    const parsed = aiOutputSchema.parse(JSON.parse(content));
-    console.log(`[score-lead] scored place="${lead.name}" score=${parsed.score}`);
-    return nicheConfig.id === "dentists" ? postProcessDentistScore(lead, parsed) : parsed;
+    const parsed = genericAiOutputSchema.parse(JSON.parse(content));
+    const score = clampScore(parsed.score);
+    console.log(`[score-lead] generic place="${lead.name}" score=${score}`);
+
+    return {
+      score,
+      reason: parsed.reason.length > 140 ? `${parsed.reason.slice(0, 137)}...` : parsed.reason,
+      outreach: parsed.outreach.length > 280 ? `${parsed.outreach.slice(0, 277)}...` : parsed.outreach,
+      opportunityType: null,
+      priority: classifyPriorityFromScore(score),
+      usedAiFallback: false,
+    };
   } catch (err) {
-    console.error("[score-lead] AI scoring failed; using fallback.", err);
-    return nicheConfig.id === "dentists" ? postProcessDentistScore(lead, fallback) : fallback;
+    console.error("[score-lead] Generic AI scoring failed; using fallback.", err);
+    return {
+      ...genericFallback,
+      opportunityType: null,
+      priority: classifyPriorityFromScore(genericFallback.score),
+      usedAiFallback: true,
+    };
   }
 }
 
+export async function scoreLead(lead: Lead, nicheConfig: NicheConfig): Promise<ScoreLeadResult> {
+  if (nicheConfig.id === "dentists") {
+    return scoreDentistLead(lead);
+  }
+  return scoreGenericLead(lead, nicheConfig);
+}

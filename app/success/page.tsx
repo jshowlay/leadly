@@ -7,9 +7,10 @@ export const dynamic = "force-dynamic";
 export default async function SuccessPage({
   searchParams,
 }: {
-  searchParams: { session_id?: string };
+  searchParams: Promise<{ session_id?: string }> | { session_id?: string };
 }) {
-  const sessionId = searchParams.session_id ?? null;
+  const sp = await Promise.resolve(searchParams);
+  const sessionId = sp.session_id ?? null;
 
   let outcome: SuccessOutcome;
   if (!sessionId) {

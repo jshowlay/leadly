@@ -2,12 +2,13 @@ import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BuyLeadPackButton } from "@/components/buy-lead-pack-button";
 
-export default function PricingPage({
+export default async function PricingPage({
   searchParams,
 }: {
-  searchParams: { searchId?: string };
+  searchParams: Promise<{ searchId?: string }> | { searchId?: string };
 }) {
-  const searchIdStr = searchParams.searchId;
+  const sp = await Promise.resolve(searchParams);
+  const searchIdStr = sp.searchId;
   const searchId = searchIdStr ? Number(searchIdStr) : null;
   const validSearchId = searchId && Number.isFinite(searchId) && searchId > 0 ? searchId : null;
 
@@ -18,7 +19,7 @@ export default function PricingPage({
           <p className="text-lg font-semibold">Leadly</p>
           <div className="flex gap-3">
             <Link href="/" className="text-sm underline">
-              Home
+              Leadly home
             </Link>
           </div>
         </div>
@@ -50,7 +51,7 @@ export default function PricingPage({
                     Run a search first, then return here with your search link, or use the unlock button on your
                     results page.
                   </p>
-                  <Link href="/" className="inline-flex h-10 w-full items-center justify-center rounded-md border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-900 transition-colors hover:bg-slate-100">
+                  <Link href="/search" className="inline-flex h-10 w-full items-center justify-center rounded-md border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-900 transition-colors hover:bg-slate-100">
                     Start a search
                   </Link>
                 </div>

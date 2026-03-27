@@ -3,12 +3,9 @@
 @tailwind utilities;
 
 @layer base {
-  * {
-    @apply border-slate-200;
-  }
-
   body {
     @apply bg-white text-slate-900 antialiased;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   }
 }
 

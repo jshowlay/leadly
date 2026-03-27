@@ -2,7 +2,9 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getPlaceDetails, searchBusinesses } from "@/lib/google-places";
 import { createSearch, getSearchWithLeads, insertLeads, setSearchStatus } from "@/lib/db";
+import { dedupeLeads } from "@/lib/dedupe-leads";
 import { scoreLead } from "@/lib/score-lead";
+import { logDentistScoringBatch } from "@/lib/scoring-log";
 import { Lead } from "@/lib/types";
 import { getNicheConfig } from "@/lib/niches";
 
@@ -63,32 +65,13 @@ function seemsRelevantToNiche(
   return !clearlyIrrelevant.some((bad) => pt.includes(bad));
 }
 
-function filterAndDedupeLeads(leads: Lead[], niche: string, nicheId: string): Lead[] {
-  const out: Lead[] = [];
-  const seenPlaceIds = new Set<string>();
-  const seenNamePhone = new Set<string>();
-
-  for (const lead of leads) {
-    const placeId = normalizeText(lead.placeId);
-    const name = (lead.name ?? "").trim();
-    const phone = normalizeText(lead.phone);
+function filterLeadsForQualityAndNiche(leads: Lead[], niche: string, nicheId: string): Lead[] {
+  return leads.filter((lead) => {
     const reviewCount = lead.reviewCount ?? 0;
-
-    if (!placeId || !name) continue;
-    if (seenPlaceIds.has(placeId)) continue;
-
-    const namePhoneKey = `${normalizeText(name)}::${phone}`;
-    if (phone && seenNamePhone.has(namePhoneKey)) continue;
-
-    if (!lead.website && !lead.phone && reviewCount < 5) continue;
-    if (!seemsRelevantToNiche(lead.primaryType, lead.name, niche, nicheId)) continue;
-
-    seenPlaceIds.add(placeId);
-    if (phone) seenNamePhone.add(namePhoneKey);
-    out.push(lead);
-    if (out.length >= TARGET_LEAD_COUNT) break;
-  }
-  return out;
+    if (!lead.website && !lead.phone && reviewCount < 5) return false;
+    if (!seemsRelevantToNiche(lead.primaryType, lead.name, niche, nicheId)) return false;
+    return true;
+  });
 }
 
 export async function POST(request: Request) {
@@ -139,7 +122,16 @@ export async function POST(request: Request) {
       }));
       console.log(`[api/search] totalNormalizedResults=${normalizedLeads.length}`);
 
-      const filteredLeads = filterAndDedupeLeads(normalizedLeads, niche, nicheConfig.id);
+      const withPlaceAndName = normalizedLeads.filter((l) => {
+        const placeId = normalizeText(l.placeId);
+        const name = (l.name ?? "").trim();
+        return Boolean(placeId && name);
+      });
+      const dedupedOnce = dedupeLeads(withPlaceAndName);
+      const filteredLeads = filterLeadsForQualityAndNiche(dedupedOnce, niche, nicheConfig.id).slice(
+        0,
+        TARGET_LEAD_COUNT
+      );
       console.log(`[api/search] totalDedupedResults=${filteredLeads.length}`);
 
       if (filteredLeads.length === 0) {
@@ -191,22 +183,45 @@ export async function POST(request: Request) {
         }
       }
 
+      const dedupedForScoring = dedupeLeads(filteredLeads).slice(0, TARGET_LEAD_COUNT);
+
       // Score leads with AI.
       let failedAIScores = 0;
+      const dentistScoringLog: Array<{
+        baseScore: number;
+        finalScore: number;
+        opportunityType: string;
+        priority: string;
+      }> = [];
+
       const scoredLeads = await Promise.all(
-        filteredLeads.map(async (lead) => {
+        dedupedForScoring.map(async (lead) => {
           const scored = await scoreLead(lead, nicheConfig);
-          if (
-            scored.score === 50 &&
-            scored.reason === "Potential local business lead with possible growth opportunity."
-          ) {
-            failedAIScores += 1;
+          if (scored.usedAiFallback) failedAIScores += 1;
+          if (nicheConfig.id === "dentists" && scored.dentistScoringMeta) {
+            dentistScoringLog.push({
+              baseScore: scored.dentistScoringMeta.baseScore,
+              finalScore: scored.score ?? 0,
+              opportunityType: scored.opportunityType ?? "unknown",
+              priority: scored.priority ?? "low",
+            });
           }
           console.log(`[api/search] aiScored placeId=${lead.placeId} score=${scored.score}`);
-          return { ...lead, ...scored, status: "new" };
+          return {
+            ...lead,
+            score: scored.score,
+            reason: scored.reason,
+            outreach: scored.outreach,
+            opportunityType: scored.opportunityType,
+            priority: scored.priority,
+            status: "new",
+          };
         })
       );
       console.log(`[api/search] scoredCount=${scoredLeads.length} failedAIScores=${failedAIScores}`);
+      if (nicheConfig.id === "dentists") {
+        logDentistScoringBatch(dentistScoringLog);
+      }
 
       const inserted = await insertLeads(searchId, scoredLeads);
       console.log(`[api/search] dbInsertedLeads count=${inserted}`);

@@ -6,9 +6,23 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
-export function SearchForm() {
-  const [niche, setNiche] = useState("");
-  const [location, setLocation] = useState("");
+type SearchFormProps = {
+  defaultNiche?: string;
+  defaultLocation?: string;
+  cardTitle?: string;
+  cardDescription?: string;
+  submitLabel?: string;
+};
+
+export function SearchForm({
+  defaultNiche = "",
+  defaultLocation = "",
+  cardTitle = "Find high-intent local leads",
+  cardDescription = "Enter your niche and target location to generate AI-scored prospects.",
+  submitLabel = "Find Leads",
+}: SearchFormProps) {
+  const [niche, setNiche] = useState(defaultNiche);
+  const [location, setLocation] = useState(defaultLocation);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -47,8 +61,8 @@ export function SearchForm() {
   return (
     <Card className="w-full max-w-xl">
       <CardHeader>
-        <CardTitle>Find high-intent local leads</CardTitle>
-        <CardDescription>Enter your niche and target location to generate AI-scored prospects.</CardDescription>
+        <CardTitle>{cardTitle}</CardTitle>
+        <CardDescription>{cardDescription}</CardDescription>
       </CardHeader>
       <CardContent>
         <form className="space-y-4" onSubmit={onSubmit}>
@@ -71,7 +85,7 @@ export function SearchForm() {
                 Searching...
               </>
             ) : (
-              "Find Leads"
+              submitLabel
             )}
           </Button>
           {error ? <p className="text-sm text-red-600">{error}</p> : null}

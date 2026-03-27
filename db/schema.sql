@@ -31,6 +31,8 @@ CREATE TABLE IF NOT EXISTS leads (
   score INTEGER,
   reason TEXT,
   outreach TEXT,
+  opportunity_type TEXT,
+  priority TEXT,
   maps_url TEXT,
   primary_type TEXT,
   metadata JSONB DEFAULT '{}'::jsonb,

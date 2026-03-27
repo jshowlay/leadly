@@ -12,6 +12,8 @@ type AdminLead = {
   phone: string | null;
   website: string | null;
   score: number | null;
+  priority: string | null;
+  opportunityType: string | null;
   createdAt: Date | string;
 };
 
@@ -67,6 +69,8 @@ export function AdminLeadsTable({ leads }: { leads: AdminLead[] }) {
             <TableHead>Primary Type</TableHead>
             <TableHead>Search ID</TableHead>
             <TableHead>Score</TableHead>
+            <TableHead>Priority</TableHead>
+            <TableHead>Opportunity</TableHead>
             <TableHead>Phone</TableHead>
             <TableHead>Website</TableHead>
           </TableRow>
@@ -80,6 +84,8 @@ export function AdminLeadsTable({ leads }: { leads: AdminLead[] }) {
               <TableCell>{l.primaryType ?? "-"}</TableCell>
               <TableCell className="font-mono text-xs">{l.searchId}</TableCell>
               <TableCell>{l.score ?? "-"}</TableCell>
+              <TableCell className="text-xs uppercase">{l.priority ?? "—"}</TableCell>
+              <TableCell className="max-w-[160px] font-mono text-xs">{l.opportunityType ?? "—"}</TableCell>
               <TableCell>{l.phone ?? "-"}</TableCell>
               <TableCell className="max-w-[280px]">
                 {l.website ? (

@@ -13,6 +13,8 @@ export type Lead = {
   score?: number;
   reason?: string;
   outreach?: string;
+  opportunityType?: string | null;
+  priority?: string | null;
   status?: string; // db status (e.g. "new")
   createdAt?: string;
   metadata: Record<string, unknown>; // raw source data, persisted to DB
@@ -59,6 +61,8 @@ export type ExportLeadRow = {
   score: number | null;
   reason: string | null;
   outreach: string | null;
+  priority: string | null;
+  opportunity_type: string | null;
   primary_type: string | null;
   maps_url: string | null;
   created_at: string | null;
