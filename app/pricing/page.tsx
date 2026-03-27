@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BrandMark } from "@/components/brand-mark";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BuyLeadPackButton } from "@/components/buy-lead-pack-button";
 
@@ -16,10 +17,10 @@ export default async function PricingPage({
     <main className="min-h-screen bg-white">
       <header className="w-full bg-black py-4 text-white">
         <div className="container-page flex items-center justify-between">
-          <p className="text-lg font-semibold">Leadly</p>
+          <BrandMark />
           <div className="flex gap-3">
             <Link href="/" className="text-sm underline">
-              Leadly home
+              Home
             </Link>
           </div>
         </div>
@@ -36,10 +37,13 @@ export default async function PricingPage({
                 <p className="text-4xl font-bold">$49</p>
                 <p className="text-sm text-slate-600">One-time payment · USD</p>
               </div>
+              <p className="text-sm text-slate-700">
+                50 high-opportunity dental leads with prioritized insights and ready-to-use outreach messages.
+              </p>
               <ul className="list-inside list-disc space-y-2 text-sm text-slate-700">
-                <li>Up to 50 qualified dentist leads (per search result set)</li>
-                <li>AI lead scoring</li>
-                <li>Personalized outreach messages included</li>
+                <li>Up to 50 qualified practices per search</li>
+                <li>Prioritized scoring for patient growth</li>
+                <li>Personalized outreach for more appointments</li>
                 <li>CSV download unlocked after payment</li>
               </ul>
 

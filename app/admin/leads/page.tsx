@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BrandMark } from "@/components/brand-mark";
 import { getRecentLeads, isDatabaseConfigured } from "@/lib/db";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AdminLeadsTable } from "@/components/admin-leads-table";
@@ -33,7 +34,7 @@ export default async function AdminLeadsPage() {
     <main className="min-h-screen bg-white">
       <header className="w-full bg-black py-4 text-white">
         <div className="container-page flex items-center justify-between">
-          <p className="text-lg font-semibold">Leadly Admin</p>
+          <BrandMark variant="admin" />
           <div className="flex items-center gap-3">
             <Link href="/admin/searches" className="text-sm underline">
               Searches

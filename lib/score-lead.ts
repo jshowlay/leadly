@@ -19,10 +19,8 @@ const dentistAiOutputSchema = z.object({
   outreach: z.string().min(1).max(280),
 });
 
-const DENTIST_FALLBACK_REASON =
-  "Local dental practice with measurable opportunity to increase patient acquisition.";
 const DENTIST_FALLBACK_OUTREACH =
-  "Hi, I came across your practice and thought there may be an opportunity to help you bring in more new patients — open to a quick idea?";
+  "Hi — I came across your practice and noticed there may be room to increase new patient bookings. We help dentists turn their local presence into more appointments — open to a quick idea?";
 
 const genericFallback = {
   score: 50,
@@ -35,9 +33,10 @@ function clampScore(score: number): number {
   return Math.min(100, Math.max(1, Math.round(score)));
 }
 
+/** AI may only nudge the rule-based score by ±8. */
 function clampAdjustment(n: number): number {
   if (Number.isNaN(n)) return 0;
-  return Math.min(10, Math.max(-10, Math.round(n)));
+  return Math.min(8, Math.max(-8, Math.round(n)));
 }
 
 function buildGenericPrompt(lead: Lead, nicheConfig: NicheConfig) {
@@ -80,12 +79,13 @@ Your job is to analyze this business and generate highly specific, data-aware in
 Return ONLY valid JSON:
 
 {
-  "adjustment": number between -10 and +10,
+  "adjustment": number between -8 and +8,
   "reason": "one specific sentence referencing real data",
   "outreach": "a short personalized outreach message"
 }
 
 Rules:
+- adjustment must be between -8 and +8 (small tweak to the base score only; do not replace scoring)
 - reason must reference actual signals (reviews, rating, website)
 - DO NOT use generic phrases like "great opportunity"
 - outreach must feel human, not robotic
@@ -107,48 +107,42 @@ Base Score: ${baseScore}
 }
 
 const GENERIC_REASON_BAN =
-  /\b(great opportunity|potential opportunity|this is a good lead|good lead|strong opportunity)\b/i;
+  /\b(good lead|great opportunity|potential opportunity|strong opportunity|growth opportunity)\b/i;
 
-function structuredDentistReason(lead: Lead): string {
-  const rc = lead.reviewCount;
-  const rating = lead.rating;
-  if (rc != null && rc < 20) {
-    return `Only ${rc} reviews suggests strong opportunity to increase patient volume`;
-  }
-  if (rating != null && rc != null && rc >= 20 && rc < 100) {
-    return `${rating} rating with moderate reviews indicates room for more bookings`;
-  }
-  if (rc != null && rc >= 100 && rating != null && rating < 4.2) {
-    return `Established practice but ${rating} rating suggests underutilized reputation versus volume`;
-  }
+/** Fallback when AI is missing or too generic — tied to actual signals. */
+function dentistFallbackReasonFromSignals(lead: Lead): string {
   if (!lead.website) {
-    return "No public website limits new patient discovery and online booking paths";
+    return "Practice appears to have weak online visibility with no website present.";
   }
-  return DENTIST_FALLBACK_REASON;
+  const rc = lead.reviewCount;
+  if (rc !== null && rc !== undefined && rc < 20) {
+    return "Low review volume suggests clear opportunity to increase patient visibility.";
+  }
+  const rating = lead.rating;
+  if (rating !== null && rating !== undefined && rating < 4.2) {
+    return "Review profile suggests room to improve patient perception and bookings.";
+  }
+  return "Local dental practice shows measurable opportunity for patient growth.";
 }
 
 function sanitizeDentistReason(lead: Lead, reason: string): string {
   const trimmed = reason.trim().slice(0, 140);
   if (!trimmed || GENERIC_REASON_BAN.test(trimmed)) {
-    return structuredDentistReason(lead);
+    return dentistFallbackReasonFromSignals(lead);
   }
   return trimmed;
 }
 
+const OUTREACH_KEYWORD_RE = /\b(?:patient|patients|booking|bookings|appointment|appointments)\b/i;
+
 function sanitizeDentistOutreach(lead: Lead, outreach: string): string {
-  let candidate = outreach.trim();
-  const hasPatientAngle = /patients?|appointments?|bookings?/i.test(candidate);
-  const rating = lead.rating;
-  const rc = lead.reviewCount;
-
-  if (!hasPatientAngle) {
-    if (rating != null && rc != null) {
-      candidate = `Hi — I noticed your practice has a solid ${rating} rating but only around ${rc} reviews. We help dentists turn that into more booked appointments — would you be open to a quick idea?`;
-    } else {
-      candidate = DENTIST_FALLBACK_OUTREACH;
-    }
+  let candidate = (outreach ?? "").trim();
+  if (!candidate) {
+    candidate = DENTIST_FALLBACK_OUTREACH;
   }
-
+  if (!OUTREACH_KEYWORD_RE.test(candidate)) {
+    candidate = DENTIST_FALLBACK_OUTREACH;
+  }
   return candidate.length > 280 ? `${candidate.slice(0, 277)}...` : candidate;
 }
 
@@ -169,7 +163,7 @@ async function scoreDentistLead(lead: Lead): Promise<ScoreLeadResult> {
     const finalScore = clampScore(baseScore);
     return {
       score: finalScore,
-      reason: structuredDentistReason(lead),
+      reason: dentistFallbackReasonFromSignals(lead),
       outreach: sanitizeDentistOutreach(lead, DENTIST_FALLBACK_OUTREACH),
       opportunityType,
       priority: classifyPriorityFromScore(finalScore),
@@ -213,7 +207,7 @@ async function scoreDentistLead(lead: Lead): Promise<ScoreLeadResult> {
     const finalScore = clampScore(baseScore);
     return {
       score: finalScore,
-      reason: structuredDentistReason(lead),
+      reason: dentistFallbackReasonFromSignals(lead),
       outreach: sanitizeDentistOutreach(lead, DENTIST_FALLBACK_OUTREACH),
       opportunityType,
       priority: classifyPriorityFromScore(finalScore),

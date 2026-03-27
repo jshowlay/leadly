@@ -25,6 +25,32 @@ function formatDate(d: Date | string) {
   }
 }
 
+function priorityBadge(priority: string | null | undefined) {
+  const p = (priority ?? "").toLowerCase();
+  if (p === "high") {
+    return (
+      <span className="rounded-md border border-emerald-600 bg-emerald-50 px-1.5 py-0.5 text-[10px] font-bold uppercase text-emerald-900">
+        High
+      </span>
+    );
+  }
+  if (p === "medium") {
+    return (
+      <span className="rounded-md border border-slate-300 bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium uppercase text-slate-800">
+        Medium
+      </span>
+    );
+  }
+  if (p === "low") {
+    return (
+      <span className="rounded-md border border-slate-200 bg-slate-50 px-1.5 py-0.5 text-[10px] font-normal uppercase text-slate-500">
+        Low
+      </span>
+    );
+  }
+  return <span className="text-slate-400">—</span>;
+}
+
 export function AdminLeadsTable({ leads }: { leads: AdminLead[] }) {
   const [nicheFilter, setNicheFilter] = useState("all");
   const niches = useMemo(
@@ -84,7 +110,7 @@ export function AdminLeadsTable({ leads }: { leads: AdminLead[] }) {
               <TableCell>{l.primaryType ?? "-"}</TableCell>
               <TableCell className="font-mono text-xs">{l.searchId}</TableCell>
               <TableCell>{l.score ?? "-"}</TableCell>
-              <TableCell className="text-xs uppercase">{l.priority ?? "—"}</TableCell>
+              <TableCell>{priorityBadge(l.priority)}</TableCell>
               <TableCell className="max-w-[160px] font-mono text-xs">{l.opportunityType ?? "—"}</TableCell>
               <TableCell>{l.phone ?? "-"}</TableCell>
               <TableCell className="max-w-[280px]">

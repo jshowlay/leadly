@@ -33,7 +33,9 @@ export async function POST(request: Request) {
           price_data: {
             currency: "usd",
             product_data: {
-              name: "Leadly Dentist Lead Pack",
+              name: "Dentily Dental Lead Pack",
+              description:
+                "50 high-opportunity dental leads with prioritized insights and ready-to-use outreach messages.",
             },
             unit_amount: 4900,
           },

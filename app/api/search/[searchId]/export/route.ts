@@ -55,7 +55,7 @@ export async function GET(
     }
 
     const csv = buildCsv(rows, exportColumns);
-    const filename = `leadly-${toSlugPart(search.niche)}-${toSlugPart(search.location)}-${searchId}.csv`;
+    const filename = `dentily-${toSlugPart(search.location)}-dental-leads-${searchId}.csv`;
     const body = `\uFEFF${csv}`;
 
     return new NextResponse(body, {

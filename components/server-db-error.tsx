@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BrandMark } from "@/components/brand-mark";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export function ServerDbError({
@@ -16,7 +17,7 @@ export function ServerDbError({
     <main className="min-h-screen bg-white">
       <header className="w-full bg-black py-4 text-white">
         <div className="container-page flex items-center justify-between">
-          <p className="text-lg font-semibold">Leadly</p>
+          <BrandMark />
         </div>
       </header>
       <section className="container-page py-10">

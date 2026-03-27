@@ -61,7 +61,7 @@ export async function verifyAndFulfillCheckoutSession(
       if (result.ok && result.searchId !== undefined) {
         return { ok: true, searchId: result.searchId };
       }
-      return { ok: false, message: result.reason ?? "Could not unlock your lead pack." };
+      return { ok: false, message: result.reason ?? "Could not unlock your Dentily lead pack." };
     } catch (e) {
       console.error("[verifyAndFulfillCheckoutSession]", e);
       const msg = e instanceof Error ? e.message : "Verification failed.";

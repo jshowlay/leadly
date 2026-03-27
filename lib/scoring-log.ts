@@ -7,35 +7,32 @@ export type DentistScoringLogEntry = {
   priority: string;
 };
 
-function bucket10(n: number): string {
-  const capped = Math.min(100, Math.max(0, n));
-  if (capped === 100) return "100";
-  const b = Math.floor(capped / 10) * 10;
-  return `${b}-${b + 9}`;
-}
-
 export function logDentistScoringBatch(entries: DentistScoringLogEntry[], label = "[api/search]") {
   if (entries.length === 0) {
     console.log(`${label} dentist scoring stats: no entries`);
     return;
   }
 
-  const baseDist: Record<string, number> = {};
-  const finalDist: Record<string, number> = {};
-  const oppCounts: Record<string, number> = {};
+  const finals = entries.map((e) => e.finalScore);
+  const min = Math.min(...finals);
+  const max = Math.max(...finals);
+  const avg = finals.reduce((a, b) => a + b, 0) / finals.length;
+
   let high = 0;
+  let medium = 0;
+  let low = 0;
+  const oppCounts: Record<string, number> = {};
 
   for (const e of entries) {
-    const bk = bucket10(e.baseScore);
-    baseDist[bk] = (baseDist[bk] ?? 0) + 1;
-    const fk = bucket10(e.finalScore);
-    finalDist[fk] = (finalDist[fk] ?? 0) + 1;
-    oppCounts[e.opportunityType] = (oppCounts[e.opportunityType] ?? 0) + 1;
     if (e.priority === "high") high += 1;
+    else if (e.priority === "medium") medium += 1;
+    else low += 1;
+    oppCounts[e.opportunityType] = (oppCounts[e.opportunityType] ?? 0) + 1;
   }
 
-  console.log(`${label} dentist baseScore distribution`, baseDist);
-  console.log(`${label} dentist finalScore distribution`, finalDist);
-  console.log(`${label} dentist high priority count`, high);
-  console.log(`${label} dentist opportunity_type counts`, oppCounts);
+  console.log(
+    `${label} dentist scores: min=${min} max=${max} avg=${avg.toFixed(1)} (n=${entries.length})`
+  );
+  console.log(`${label} dentist priority: high=${high} medium=${medium} low=${low}`);
+  console.log(`${label} dentist opportunity_type counts:`, oppCounts);
 }

@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Leadly",
-  description: "AI-powered lead generation for local niches.",
+  title: "Dentily",
+  description: "Dentily helps dentists get more patients through targeted lead intelligence.",
 };
 
 export default function RootLayout({

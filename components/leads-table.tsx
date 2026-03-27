@@ -13,18 +13,24 @@ function priorityBadge(priority: string | null | undefined) {
   const p = (priority ?? "").toLowerCase();
   if (p === "high") {
     return (
-      <span className="rounded border border-amber-400 bg-amber-100 px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-amber-900">
+      <span className="rounded-md border-2 border-emerald-600 bg-emerald-50 px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-emerald-900 shadow-sm">
         High
       </span>
     );
   }
   if (p === "medium") {
     return (
-      <span className="rounded bg-slate-200 px-2 py-0.5 text-xs font-medium uppercase text-slate-800">Medium</span>
+      <span className="rounded-md border border-slate-300 bg-slate-100 px-2 py-0.5 text-xs font-medium uppercase text-slate-800">
+        Medium
+      </span>
     );
   }
   if (p === "low") {
-    return <span className="rounded bg-slate-100 px-2 py-0.5 text-xs text-slate-600">Low</span>;
+    return (
+      <span className="rounded-md border border-slate-200 bg-slate-50 px-2 py-0.5 text-xs font-normal uppercase text-slate-500">
+        Low
+      </span>
+    );
   }
   return <span className="text-slate-500">—</span>;
 }
@@ -63,8 +69,10 @@ export function LeadsTable({ leads }: { leads: Lead[] }) {
             key={`${lead.placeId ?? lead.name}-${index}`}
             className={
               (lead.priority ?? "").toLowerCase() === "high"
-                ? "bg-amber-50/80 hover:bg-amber-50"
-                : undefined
+                ? "bg-emerald-50/90 hover:bg-emerald-50"
+                : (lead.priority ?? "").toLowerCase() === "low"
+                  ? "bg-slate-50/50 text-slate-800"
+                  : undefined
             }
           >
             <TableCell className="font-medium">{lead.name}</TableCell>

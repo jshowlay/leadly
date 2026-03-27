@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BrandMark } from "@/components/brand-mark";
 import { buttonVariants } from "@/lib/button-variants";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -29,7 +30,7 @@ function LandingHeader() {
   return (
     <header className="w-full bg-black py-4 text-white">
       <div className="container-page flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-lg font-semibold">Leadly</p>
+        <BrandMark />
         <div className="flex flex-wrap items-center gap-3">
           <Link href="/search" className="text-sm text-white/90 underline-offset-4 hover:underline">
             Run a search
@@ -84,13 +85,13 @@ export function DentistLanding() {
             Get More Dental Patients — Without Guesswork
           </h1>
           <p className="mt-5 text-lg leading-relaxed text-slate-600 md:text-xl">
-            Leadly finds local dental practices that are ready to grow and gives you exactly how to reach them.
+            Dentily identifies dental practices most likely to grow and shows you exactly how to reach them.
           </p>
           <div className="mt-8 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
             <CtaPrimary />
           </div>
           <p className="mt-4 text-base font-medium text-slate-700">
-            50 qualified dental leads + outreach messages — ready today
+            50 prioritized practices + outreach for more appointments — ready today
           </p>
         </div>
       </section>
@@ -125,7 +126,7 @@ export function DentistLanding() {
       {/* Solution */}
       <section className="container-page py-12 md:py-16">
         <div className="mx-auto max-w-3xl">
-          <h2 className="text-2xl font-bold text-slate-900 md:text-3xl">Leadly Finds Your Best Opportunities — Instantly</h2>
+          <h2 className="text-2xl font-bold text-slate-900 md:text-3xl">Dentily Finds Your Best Opportunities — Instantly</h2>
           <ul className="mt-6 space-y-4 text-lg text-slate-700">
             <li className="flex gap-3">
               <span className="text-green-600">✓</span>
@@ -176,7 +177,7 @@ export function DentistLanding() {
       <section className="container-page py-12 md:py-16">
         <div className="mx-auto max-w-4xl">
           <h2 className="text-center text-2xl font-bold text-slate-900 md:text-3xl">Sample results</h2>
-          <p className="mt-2 text-center text-slate-600">Here&apos;s what a Leadly result looks like</p>
+          <p className="mt-2 text-center text-slate-600">Here&apos;s what a Dentily result looks like</p>
           <Card className="mt-8 overflow-hidden">
             <CardContent className="p-0">
               <Table>
@@ -247,7 +248,7 @@ export function DentistLanding() {
         <div className="mx-auto max-w-md">
           <Card className="border-2 border-slate-900 shadow-lg">
             <CardHeader className="text-center">
-              <CardTitle className="text-2xl">Dentist Lead Pack</CardTitle>
+              <CardTitle className="text-2xl">Dentily Dental Lead Pack</CardTitle>
               <p className="text-4xl font-bold text-slate-900">$49</p>
               <p className="text-sm text-slate-600">One-time · USD</p>
             </CardHeader>
@@ -275,7 +276,7 @@ export function DentistLanding() {
       {/* Trust */}
       <section className="border-t border-slate-200 bg-slate-50 py-12 md:py-16">
         <div className="container-page mx-auto max-w-3xl text-center">
-          <h2 className="text-xl font-semibold text-slate-900 md:text-2xl">Why teams use Leadly</h2>
+          <h2 className="text-xl font-semibold text-slate-900 md:text-2xl">Why teams use Dentily</h2>
           <div className="mt-8 grid gap-6 text-left sm:grid-cols-3 sm:text-center">
             <p className="text-slate-700">Built for local service businesses</p>
             <p className="text-slate-700">Focused on real patient growth</p>
@@ -316,7 +317,7 @@ export function DentistLanding() {
 
       <footer className="border-t border-slate-200 py-8 text-center text-sm text-slate-600">
         <div className="container-page">
-          <p>© 2026 Leadly · Dentist lead packs</p>
+          <p>© 2026 Dentily · Dental patient growth</p>
           <Link href="/search" className="mt-2 inline-block text-blue-600 hover:underline">
             Run a search
           </Link>

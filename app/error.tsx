@@ -32,7 +32,10 @@ export default function Error({
         }}
       >
         <div style={{ maxWidth: "72rem", margin: "0 auto", padding: "0 1rem" }}>
-          <p style={{ fontSize: "1.125rem", fontWeight: 600 }}>Leadly</p>
+          <p style={{ fontSize: "1.125rem", fontWeight: 600, margin: 0 }}>Dentily</p>
+          <p style={{ fontSize: "0.7rem", fontWeight: 500, color: "rgba(255,255,255,0.65)", margin: "4px 0 0 0" }}>
+            Find Your Next Patients
+          </p>
         </div>
       </header>
       <section style={{ maxWidth: "42rem", margin: "0 auto", padding: "2.5rem 1rem" }}>

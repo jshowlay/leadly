@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BrandMark } from "@/components/brand-mark";
 import { SearchForm } from "@/components/search-form";
 
 export default function SearchPage() {
@@ -6,8 +7,8 @@ export default function SearchPage() {
     <main className="min-h-screen bg-white">
       <header className="w-full bg-black py-4 text-white">
         <div className="container-page flex items-center justify-between">
-          <Link href="/" className="text-lg font-semibold">
-            Leadly
+          <Link href="/" className="inline-flex flex-col gap-0.5 text-white no-underline hover:opacity-95">
+            <BrandMark />
           </Link>
           <Link href="/" className="text-sm text-white/90 underline-offset-4 hover:underline">
             Marketing page
@@ -20,7 +21,7 @@ export default function SearchPage() {
             Get your dentist lead pack
           </h1>
           <p className="mb-8 text-center text-lg text-slate-600">
-            Choose your area — we&apos;ll find practices and score every lead for you.
+            Choose your area — we find practices and surface patient growth opportunities with prioritized outreach.
           </p>
           <div className="flex justify-center">
             <SearchForm

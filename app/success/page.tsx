@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { SuccessClient, type SuccessOutcome } from "@/app/success/success-client";
+import { BrandMark } from "@/components/brand-mark";
 import { verifyAndFulfillCheckoutSession } from "@/lib/payments";
 
 export const dynamic = "force-dynamic";
@@ -34,7 +35,7 @@ export default async function SuccessPage({
     <main className="min-h-screen bg-white">
       <header className="w-full bg-black py-4 text-white">
         <div className="container-page flex items-center justify-between">
-          <p className="text-lg font-semibold">Leadly</p>
+          <BrandMark />
           <Link
             href="/"
             className="inline-flex h-10 items-center justify-center rounded-md border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-black transition-colors hover:bg-slate-100"
