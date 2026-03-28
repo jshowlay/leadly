@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { BrandMark } from "@/components/brand-mark";
+import { HowToUsePack } from "@/components/how-to-use-pack";
 import { PricingFaq } from "@/components/pricing-faq";
 import { BuyLeadPackButton } from "@/components/buy-lead-pack-button";
 import { buttonVariants } from "@/lib/button-variants";
-import { SITE } from "@/lib/site-config";
+import { QUALITY_REPLACEMENT_NOTE, SITE } from "@/lib/site-config";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
@@ -49,45 +50,62 @@ export default async function PricingPage({
           <p className="text-center text-xs font-semibold uppercase tracking-wide text-slate-500">Pricing</p>
           <h1 className="mt-2 text-center text-3xl font-bold text-slate-900">{SITE.leadPackName}</h1>
           <p className="mx-auto mt-2 max-w-md text-center text-sm text-slate-600">
-            One-time purchase. Full CSV after checkout. Built for dental teams prioritizing specialty growth.
+            One-time purchase. Scored practice records for outbound — review on screen before you pay.
           </p>
 
-          <Card className="mt-10 border-2 border-slate-900 shadow-lg">
+          <Card className="mt-8 border border-slate-200 bg-slate-50 p-5">
+            <p className="text-sm font-semibold text-slate-900">Why this can pay for itself</p>
+            <p className="mt-2 text-sm leading-relaxed text-slate-600">
+              A single qualified practice conversation can justify the cost of a territory pack. Use Dentily to shorten
+              list-building time and focus reps on prioritized targets — without a long-term agency retainer. Results
+              depend on your offer and follow-up; we don&apos;t guarantee outcomes.
+            </p>
+          </Card>
+
+          <Card className="mt-8 border-2 border-slate-900 shadow-lg">
             <CardHeader>
               <CardTitle className="text-2xl">{SITE.leadPackPriceLabel}</CardTitle>
               <CardDescription>One-time payment · USD · no subscription</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <p className="text-sm text-slate-700">
-                {SITE.leadPackCount} scored local dental practices with priorities, short rationale, and outreach
-                drafts oriented toward high-value patient demand.
+                <span className="font-semibold text-slate-900">{SITE.leadPackCount} scored dental practices</span> with
+                priority tiers, short rationale per row, and outreach drafts — formatted for CSV export after checkout.
               </p>
               <ul className="space-y-2 text-sm text-slate-700">
                 <li className="flex gap-2">
-                  <span className="text-green-600">✓</span> High / medium / low priority tiers
+                  <span className="text-green-600">✓</span> High / medium / low priority labels
                 </li>
                 <li className="flex gap-2">
-                  <span className="text-green-600">✓</span> Contact fields when available on the listing
+                  <span className="text-green-600">✓</span> Explainable score factors from listing data
+                </li>
+                <li className="flex gap-2">
+                  <span className="text-green-600">✓</span> Phone, website, and Maps link when available
                 </li>
                 <li className="flex gap-2">
                   <span className="text-green-600">✓</span> Instant CSV download after payment
                 </li>
               </ul>
-              <p className="text-center text-xs font-medium text-slate-600">
-                Limited to one lead pack per area to reduce overlap.
+              <p className="rounded-md border border-slate-200 bg-white p-3 text-xs leading-relaxed text-slate-600">
+                <span className="font-medium text-slate-800">Quality:</span> {QUALITY_REPLACEMENT_NOTE}
               </p>
+              <p className="text-center text-xs font-medium text-slate-600">
+                Limited to one paid pack per search area to reduce overlap.
+              </p>
+
+              <HowToUsePack className="rounded-lg border border-slate-100 bg-slate-50/80 p-4" />
 
               {validSearchId ? (
                 <>
                   <BuyLeadPackButton searchId={validSearchId} label={SITE.unlockCta} className="w-full" />
                   <p className="text-center text-xs text-slate-500">
-                    You will return here if checkout is canceled; success opens the download flow.
+                    Cancel from Stripe returns here with your search ID intact.
                   </p>
                 </>
               ) : (
                 <div className="space-y-3">
                   <p className="text-sm text-slate-600">
-                    Run a search first, then unlock from the results page — or open this page again with your search link.
+                    Run a market search first — then unlock from results, or return to this page with your search link.
                   </p>
                   <Link
                     href="/search"

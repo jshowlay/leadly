@@ -1,23 +1,23 @@
 const FAQ_ITEMS: { q: string; a: string }[] = [
   {
-    q: "What kind of leads are included?",
-    a: "Each pack is built from local dental practice listings (e.g. Google Maps) in the area you choose. You get practice names, location, contact details where available, scores, reasons, and suggested outreach — formatted for your team to act on.",
+    q: "What do I actually receive?",
+    a: "A scored list of local dental practices (public business records) for the area you searched: names, location, contact fields when available, ratings/reviews where present, priority tier, a short reason, and suggested outreach text. It is built for B2B outreach to offices — not a consumer patient lead list.",
   },
   {
-    q: "Are these exclusive?",
-    a: "Packs are built from public business data. Dentily limits one paid pack per area to reduce overlap between customers; that does not guarantee exclusivity against all other outreach.",
-  },
-  {
-    q: "How fast do I receive leads?",
-    a: "After your search finishes, results appear on screen. After a one-time purchase, you can download the CSV immediately from your results or success page.",
+    q: "How is this different from patient leads?",
+    a: "Dentily does not sell individual patient identities or clinical data. You get practice-level opportunities derived from listings such as Google Maps, prioritized for your sales or partnership outreach.",
   },
   {
     q: "Is there a contract?",
-    a: "No subscription is required for the standard lead pack. It is a one-time purchase for that search.",
+    a: "The standard opportunity pack is a one-time purchase for that search. No subscription is required in the product flow.",
   },
   {
-    q: "What happens after purchase?",
-    a: "Payment unlocks CSV download for that search anytime. Use the outreach snippets as a starting point and follow your own compliance and licensing rules.",
+    q: "How fast do I get the file?",
+    a: "After your search completes, you can review results on screen. After payment, download the CSV from your results page or success page.",
+  },
+  {
+    q: "What should I do after purchase?",
+    a: "Review High-priority rows first, adapt the outreach drafts to your voice, and contact practices through your normal business development process. Track what works and refine your next search.",
   },
 ];
 

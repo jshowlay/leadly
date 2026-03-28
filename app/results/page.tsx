@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { sanitizeLeadsForClient } from "@/lib/client-leads";
 import { getSearchWithLeads, isDatabaseConfigured } from "@/lib/db";
 import { canExportLeadPack } from "@/lib/search-status";
+import { HowToUsePack } from "@/components/how-to-use-pack";
 import { getNicheConfig } from "@/lib/niches";
 import { SITE } from "@/lib/site-config";
 
@@ -90,7 +91,7 @@ export default async function ResultsPage({
             <div className="space-y-4">
               <Card>
                 <CardHeader>
-                  <CardTitle>Lead Pack Summary</CardTitle>
+                  <CardTitle>Opportunity pack summary</CardTitle>
                 </CardHeader>
                 <CardContent className="grid gap-3 text-sm text-slate-700 sm:grid-cols-2 lg:grid-cols-3">
                   <p>
@@ -103,7 +104,7 @@ export default async function ResultsPage({
                     <span className="font-semibold text-slate-900">Status:</span> {parsed.status}
                   </p>
                   <p>
-                    <span className="font-semibold text-slate-900">Total leads:</span>{" "}
+                    <span className="font-semibold text-slate-900">Practice records:</span>{" "}
                     {parsed.resultCount ?? parsed.leads.length}
                   </p>
                   <p>
@@ -128,8 +129,8 @@ export default async function ResultsPage({
                 <CardContent className="space-y-2 text-xs leading-relaxed text-slate-600">
                   <p>
                     <span className="font-semibold text-slate-800">Bands:</span> High is typically score 60+, Medium
-                    45–59, Low under 45. When fewer than five leads land in High on score alone, we label the
-                    next-best scorers as High so your pack always has a clear starting point.
+                    45–59, Low under 45. When fewer than five practices reach High on score alone, we label the
+                    next-best scorers as High so your list always has a clear starting point.
                   </p>
                   <p>
                     Open <span className="font-medium text-slate-800">Why this score?</span> on any row for factors drawn
@@ -141,8 +142,8 @@ export default async function ResultsPage({
               <Card>
                 <CardContent className="flex flex-col gap-4 pt-6 sm:flex-row sm:items-start sm:justify-between">
                   <p className="text-sm text-slate-700">
-                    This pack includes prioritized dental practices, patient-growth context, and ready-to-use outreach
-                    messages.
+                    Scored local practices for B2B outreach — not consumer patient data. Review priorities and outreach
+                    drafts, then unlock the CSV when you are ready.
                   </p>
                   {canExport ? (
                     parsed.isPaid ? (
@@ -155,7 +156,7 @@ export default async function ResultsPage({
                       </a>
                     ) : (
                       <div className="flex w-full max-w-sm flex-col gap-3 sm:shrink-0">
-                        <p className="text-sm font-medium text-slate-900">Unlock your full lead pack</p>
+                        <p className="text-sm font-medium text-slate-900">Unlock full export</p>
                         <p className="text-sm text-slate-600">
                           Pay once ({SITE.leadPackPriceLabel}) for instant download — prioritized practices and outreach
                           included.
@@ -173,10 +174,18 @@ export default async function ResultsPage({
                 </CardContent>
               </Card>
 
+              {parsed.leads.length > 0 ? (
+                <Card className="border-slate-200 bg-white">
+                  <CardContent className="pt-6">
+                    <HowToUsePack />
+                  </CardContent>
+                </Card>
+              ) : null}
+
               <Card>
                 <CardHeader>
                   <CardTitle>
-                    Leads for {parsed.niche} in {parsed.location}
+                    Practices — {parsed.niche} in {parsed.location}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>

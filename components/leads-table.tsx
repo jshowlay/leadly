@@ -48,7 +48,7 @@ export function LeadsTable({ leads }: { leads: Lead[] }) {
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead>Name</TableHead>
+          <TableHead>Practice</TableHead>
           <TableHead>Niche</TableHead>
           <TableHead>Type</TableHead>
           <TableHead>Priority</TableHead>

@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Dentily — High-intent dental patient growth",
+  title: "Dentily — Scored dental practice opportunities",
   description:
-    "Dentily helps dental practices prioritize local opportunities for implants, cosmetic dentistry, and Invisalign — scored listings, clear tiers, and outreach in one simple pack.",
+    "Dentily builds scored lists of local dental practices for B2B outreach: priorities, explainable factors, and message drafts — one simple opportunity pack per market.",
 };
 
 export default function RootLayout({

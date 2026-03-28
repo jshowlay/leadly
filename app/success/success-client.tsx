@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { HowToUsePack } from "@/components/how-to-use-pack";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { SITE } from "@/lib/site-config";
@@ -16,49 +17,48 @@ export function SuccessClient({ outcome }: { outcome: SuccessOutcome }) {
     <Card className="mx-auto max-w-lg border-slate-200 shadow-lg">
       <CardHeader className="space-y-1">
         <CardTitle className="text-xl">
-          {outcome.kind === "ok" ? "Payment confirmed" : "We could not confirm payment"}
+          {outcome.kind === "ok" ? "You’re in — opportunity pack unlocked" : "We could not confirm payment"}
         </CardTitle>
         {outcome.kind === "ok" ? (
-          <CardDescription>Your lead pack is unlocked for this search.</CardDescription>
+          <CardDescription>
+            Payment received. Your scored practice list and CSV download are available for this search.
+          </CardDescription>
         ) : null}
       </CardHeader>
       <CardContent className="space-y-6">
         {outcome.kind === "ok" ? (
           <>
-            <ol className="list-decimal space-y-3 pl-5 text-sm text-slate-700">
-              <li>
-                <span className="font-medium text-slate-900">Payment confirmed</span> — Stripe reported a successful
-                checkout.
-              </li>
-              <li>
-                <span className="font-medium text-slate-900">What happens next</span> — Download your CSV anytime. Use
-                outreach as a starting point and follow your compliance process.
-              </li>
-              <li>
-                <span className="font-medium text-slate-900">Where to go</span> — Open results to review the table, or
-                download the file now.
-              </li>
-            </ol>
+            <div className="rounded-lg border border-green-200 bg-green-50/80 p-4 text-sm text-green-950">
+              <p className="font-medium">What you unlocked</p>
+              <p className="mt-1 text-green-900/90">
+                Full export for search #{outcome.searchId} — prioritized practice records with outreach drafts, as shown
+                on your results page.
+              </p>
+            </div>
+            <HowToUsePack />
             <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
               <Link
-                href={`/api/search/${outcome.searchId}/export`}
+                href={`/results?searchId=${outcome.searchId}`}
                 className={cn(buttonVariants({ size: "default" }), "text-center")}
-                download
               >
-                Download lead pack (CSV)
+                View results table
               </Link>
               <Link
-                href={`/results?searchId=${outcome.searchId}`}
+                href={`/api/search/${outcome.searchId}/export`}
                 className={cn(buttonVariants({ variant: "outline", size: "default" }), "text-center")}
+                download
               >
-                View results &amp; outreach
+                Download CSV
               </Link>
             </div>
+            <p className="text-xs text-slate-500">
+              Questions about your file? Email your account contact or use the same channel you used to reach Dentily —
+              we&apos;ll help with good-faith data issues per our quality note on the pricing page.
+            </p>
             <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
-              <p className="font-medium text-slate-800">Run another market?</p>
+              <p className="font-medium text-slate-800">Another market?</p>
               <p className="mt-1">
-                Start a new search for a different city or area — each run is a separate {SITE.leadPackPriceLabel} pack
-                when you unlock.
+                Each territory search can be unlocked separately ({SITE.leadPackPriceLabel} when you purchase).
               </p>
               <Link
                 href="/search"
@@ -72,10 +72,10 @@ export function SuccessClient({ outcome }: { outcome: SuccessOutcome }) {
 
         {outcome.kind === "no_session" ? (
           <div className="rounded-md border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950">
-            <p className="font-medium">Missing checkout session</p>
+            <p className="font-medium">Checkout session not in link</p>
             <p className="mt-1 text-amber-900/90">
-              This page needs a valid <code className="rounded bg-white/80 px-1">session_id</code> from Stripe. Open it
-              from the redirect after payment, or return to your results and use download if you are already unlocked.
+              If you already paid, open your results page and use <strong>Download CSV</strong> there — your pack may
+              already be unlocked. Otherwise complete checkout from Stripe again so we can attach a session.
             </p>
             <div className="mt-4 flex flex-wrap gap-2">
               <Link href="/" className={cn(buttonVariants({ size: "default" }), "text-center")}>
@@ -88,9 +88,7 @@ export function SuccessClient({ outcome }: { outcome: SuccessOutcome }) {
           </div>
         ) : null}
 
-        {outcome.kind === "error" ? (
-          <p className="text-sm text-red-700">{outcome.message}</p>
-        ) : null}
+        {outcome.kind === "error" ? <p className="text-sm text-red-700">{outcome.message}</p> : null}
 
         {outcome.kind !== "no_session" ? (
           <Link href="/" className={cn(buttonVariants({ variant: "outline" }), "inline-flex w-fit")}>

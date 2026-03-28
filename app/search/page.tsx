@@ -1,7 +1,15 @@
 import Link from "next/link";
 import { BrandMark } from "@/components/brand-mark";
+import { MarketSearchPreview } from "@/components/market-search-preview";
 import { SearchForm } from "@/components/search-form";
-import { SITE } from "@/lib/site-config";
+import { POSITIONING, SITE } from "@/lib/site-config";
+
+const EXAMPLE_MARKETS = [
+  { label: "Los Angeles", location: "Los Angeles, CA" },
+  { label: "Dallas", location: "Dallas, TX" },
+  { label: "Miami", location: "Miami, FL" },
+  { label: "Phoenix", location: "Phoenix, AZ" },
+];
 
 export default function SearchPage() {
   return (
@@ -12,32 +20,42 @@ export default function SearchPage() {
             <BrandMark />
           </Link>
           <div className="flex flex-wrap items-center gap-4 text-sm">
-            <Link href="/" className="text-white/90 underline-offset-4 hover:underline">
-              Home
+            <Link href="/#how-it-works" className="text-white/90 underline-offset-4 hover:underline">
+              How it works
             </Link>
             <Link href="/pricing" className="text-white/90 underline-offset-4 hover:underline">
               Pricing
             </Link>
+            <Link href="/" className="text-white/90 underline-offset-4 hover:underline">
+              Home
+            </Link>
           </div>
         </div>
       </header>
-      <section className="container-page flex min-h-[calc(100vh-64px)] items-center justify-center py-12">
-        <div className="w-full max-w-xl">
-          <h1 className="mb-2 text-center text-3xl font-bold tracking-tight text-slate-900 md:text-4xl">
-            Choose your area
-          </h1>
-          <p className="mb-8 text-center text-slate-600">
-            We surface local dental practices, score them for growth potential, and draft outreach you can use for
-            implants, cosmetic, Invisalign, and more.
+
+      <section className="container-page py-10 md:py-14">
+        <div className="mx-auto max-w-2xl text-center">
+          <h1 className="text-3xl font-bold tracking-tight text-slate-900 md:text-4xl">{POSITIONING.searchHeadline}</h1>
+          <p className="mt-4 text-lg text-slate-600">{POSITIONING.searchSubheadline}</p>
+          <p className="mt-3 text-sm text-slate-500">
+            Output: scored <span className="font-medium text-slate-700">dental practice records</span> for B2B outreach
+            — not consumer patient lists.
           </p>
-          <div className="flex justify-center">
-            <SearchForm
-              defaultNiche="dentists"
-              cardTitle="Target market"
-              cardDescription={`Pick a city or region. We build up to ${SITE.leadPackCount} scored practices with priorities and outreach — unlock the CSV when you are ready.`}
-              submitLabel={SITE.primaryCta}
-            />
-          </div>
+        </div>
+
+        <div className="mx-auto mt-10 flex max-w-xl flex-col gap-10">
+          <SearchForm
+            defaultNiche="dentists"
+            hideNicheField
+            cardTitle="Location"
+            cardDescription="We search public dental practice listings in that area, then score and prioritize them for your team."
+            submitLabel={SITE.primaryCta}
+            exampleMarkets={EXAMPLE_MARKETS}
+          />
+          <MarketSearchPreview />
+          <p className="text-center text-xs text-slate-500">
+            One-time pack unlock after checkout. No long-term contract for the standard offer.
+          </p>
         </div>
       </section>
     </main>

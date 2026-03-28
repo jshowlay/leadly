@@ -28,18 +28,18 @@ export function computeWhyNow(input: {
 }): string {
   const web = (input.website ?? "").trim();
   if (!web) {
-    return "No website present — clear opportunity to improve how new patients discover your practice";
+    return "No website present — outreach can emphasize discovery and trust before the first visit";
   }
   const rating = input.rating;
   const rc = input.review_count;
   if (rating !== null && rating !== undefined && Number(rating) < 4.0) {
-    return "Lower rating suggests a reputation fix could improve patient bookings";
+    return "Lower public rating — reputation angle may resonate for partnership or marketing conversations";
   }
   if (rc !== null && rc !== undefined && Number(rc) < 20) {
-    return "Low review volume suggests strong opportunity to grow local visibility quickly";
+    return "Low review volume — strong angle for visibility and local trust-building";
   }
   if (rc !== null && rc !== undefined && Number(rc) < 75) {
-    return "Moderate review volume suggests room to expand patient demand";
+    return "Moderate review volume — room to grow local demand signals";
   }
   if (
     rating !== null &&
@@ -51,7 +51,7 @@ export function computeWhyNow(input: {
   ) {
     return "Strong existing visibility makes this a lower-priority growth target";
   }
-  return "Practice appears established but may still have room to improve patient flow";
+  return "Practice appears established — test whether growth or partnership messaging lands";
 }
 
 export type LeadPackCsvRow = {

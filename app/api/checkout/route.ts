@@ -36,7 +36,7 @@ export async function POST(request: Request) {
             product_data: {
               name: SITE.leadPackName,
               description:
-                "50 high-opportunity dental practices with prioritized insights and ready-to-use outreach messages.",
+                "50 scored local dental practices with priorities, rationale, and outreach drafts for B2B outreach (not consumer patient leads).",
             },
             unit_amount: 4900,
           },
