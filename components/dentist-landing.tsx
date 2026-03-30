@@ -31,6 +31,9 @@ function LandingHeader() {
           <BrandMark />
         </Link>
         <nav className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-white/90">
+          <Link href="/#about-dentily" className="underline-offset-4 hover:underline">
+            About
+          </Link>
           <Link href="/#what-you-get" className="underline-offset-4 hover:underline">
             What you get
           </Link>
@@ -95,7 +98,7 @@ export function DentistLanding() {
           <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
             For agencies, freelancers, consultants &amp; marketers
           </p>
-          <h1 className="mt-3 text-3xl font-bold leading-[1.12] tracking-tight text-slate-900 md:text-5xl md:leading-[1.1]">
+          <h1 className="mt-3 max-w-4xl mx-auto text-balance text-3xl font-bold leading-[1.12] tracking-tight text-slate-900 md:text-4xl md:leading-[1.1] lg:text-5xl">
             {POSITIONING.heroHeadline}
           </h1>
           <p className="mt-6 text-lg leading-relaxed text-slate-600 md:text-xl">{POSITIONING.heroSubheadline}</p>
@@ -242,7 +245,7 @@ export function DentistLanding() {
             One-time purchase. Actionable lead pack for people who sell to dental practices.
           </p>
           <p className="mx-auto mt-4 max-w-md text-center text-sm font-medium leading-relaxed text-slate-800">
-            One closed client can make your lead pack pay for itself fast.
+            Close one client from your lead pack and it can pay for itself many times over.
           </p>
           <Card className="mt-10 border-2 border-slate-900 shadow-lg">
             <CardHeader className="text-center">
@@ -291,9 +294,12 @@ export function DentistLanding() {
       {/* Final CTA */}
       <section className="bg-black py-16 text-white md:py-24">
         <div className="container-page mx-auto max-w-2xl text-center">
-          <h2 className="text-2xl font-bold md:text-3xl">Start finding dental clients</h2>
+          <h2 className="text-2xl font-bold md:text-3xl">Close your next dental client</h2>
           <p className="mt-4 text-lg text-white/85">
             Pick a territory, review your scored pack on screen, then checkout when you&apos;re ready to download.
+          </p>
+          <p className="mx-auto mt-4 max-w-md text-sm text-white/70">
+            Close one client from your lead pack and it can pay for itself many times over.
           </p>
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Link

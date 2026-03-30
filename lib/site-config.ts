@@ -18,7 +18,7 @@ export const SITE = {
 
 /** Landing hero + search page headlines */
 export const POSITIONING = {
-  heroHeadline: "Close Your Next Dental Client Faster",
+  heroHeadline: "Find Dentists Losing Patients — And Close Them as Clients",
   heroSubheadline:
     "Dentily helps agencies, freelancers, and consultants find dental practices with clear growth gaps, prioritize the best opportunities, and start outreach with confidence.",
   heroSupportLine:

@@ -57,9 +57,9 @@ export default async function PricingPage({
           <Card className="mt-8 border border-slate-200 bg-slate-50 p-5">
             <p className="text-sm font-semibold text-slate-900">ROI in plain terms</p>
             <p className="mt-2 text-sm leading-relaxed text-slate-600">
-              One closed client can make your lead pack pay for itself fast. Dentily shortens list-building so you spend
-              time on conversations, not research. Results depend on your offer and follow-up; we don&apos;t guarantee
-              outcomes.
+              Close one client from your lead pack and it can pay for itself many times over. Dentily shortens
+              list-building so you spend time on conversations, not research. Results depend on your offer and
+              follow-up; we don&apos;t guarantee outcomes.
             </p>
           </Card>
 
