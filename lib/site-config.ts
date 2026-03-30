@@ -1,26 +1,33 @@
 /** Marketing CTAs and display constants — single source of truth for funnel copy. */
 
 export const SITE = {
-  /** Matches /search: user picks market + runs scored practice lookup */
-  primaryCta: "Search Your Market",
-  secondaryCta: "See How It Works",
+  /** Primary funnel CTA — landing, nav, pricing card, final CTA */
+  primaryCta: "Get My First Lead Pack",
+  /** Secondary — scroll to product detail on landing */
+  secondaryCta: "See What's Inside",
   /** After search, when user still needs to pay */
   unlockCta: "Unlock opportunity pack ($49)",
   leadPackName: "Dentily Practice Opportunity Pack",
   leadPackPriceLabel: "$49",
   leadPackCount: 50,
-  searchSubmitLoading: "Finding practices…",
+  searchSubmitLoading: "Building your pack…",
+  /** Shown under the submit button while the search API runs */
+  searchSubmitWaitHint:
+    "We pull live listings, enrich missing details, and score every practice — usually 30–90 seconds. Keep this tab open.",
 } as const;
 
-/** What the product actually delivers (scored practice records for B2B outreach — not consumer patient leads). */
+/** Landing hero + search page headlines */
 export const POSITIONING = {
-  heroHeadline: "Find High-Value Dental Practice Opportunities in Your Market",
+  heroHeadline: "Close Your Next Dental Client in 7 Days",
   heroSubheadline:
-    "Dentily surfaces scored local dental practices, prioritizes growth signals, and gives you structured outreach so your team can start conversations faster — without a long agency retainer.",
-  heroMicrocopy: "No subscription required for the standard pack. Review results before you buy. Built for outbound and pilot programs.",
-  searchHeadline: "Search your market",
+    "Dentily finds dental practices losing patients, shows you why, and gives you exactly what to say to win them as clients.",
+  heroSupportLine:
+    "Each lead includes the best available contact method, opportunity insight, and a ready-to-use outreach message.",
+  heroMicrocopy:
+    "No subscription required for the standard pack. Review results before you buy. Built for agencies, freelancers, and consultants who sell growth.",
+  searchHeadline: "Pick your city",
   searchSubheadline:
-    "Enter a city or region to generate a scored list of local dental practices. Preview results, then unlock the full CSV when you are ready.",
+    "We surface dental practices with clear growth gaps, score the opportunity, and give you contact paths plus outreach you can use today.",
 } as const;
 
 export const HOW_TO_USE_PACK_STEPS: readonly string[] = [

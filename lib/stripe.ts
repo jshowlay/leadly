@@ -42,5 +42,6 @@ export function getAppBaseUrl(request?: Request): string {
     return `https://${host}`.replace(/\/$/, "");
   }
 
-  return "http://localhost:3000";
+  const port = process.env.PORT?.trim() || "3000";
+  return `http://127.0.0.1:${port}`;
 }

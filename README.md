@@ -2,19 +2,25 @@ This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next
 
 ## Getting Started
 
-First, run the development server:
+First, run the development server from the project root:
 
 ```bash
+nvm use          # optional: reads .nvmrc (Node 22)
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+If the browser shows **connection refused** or `npm run dev` exits right away (wrong/old Node in IDE terminals), use:
+
+```bash
+npm run dev:boot
+```
+
+That loads **nvm** then starts the app.
+
+After you see **Ready**, open **[http://localhost:3000](http://localhost:3000)** (`http` only, not `https`). Keep the terminal open.
+
+Requires **Node ≥ 18.17** (see `package.json` `engines`); `.nvmrc` pins **22**.
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 

@@ -5,11 +5,13 @@ import { createSearch, getSearchWithLeads, insertLeads, setSearchStatus } from "
 import { dedupeLeads } from "@/lib/dedupe-leads";
 import { ensureMinimumHighPriority, type DentistScoringBatchContext } from "@/lib/dentist-scoring";
 import { logSearchPrioritySummary, sortByPriorityThenScore } from "@/lib/lead-pack-export";
-import { scoreLead } from "@/lib/score-lead";
+import { scoreDentistLeadsBatched, scoreLead } from "@/lib/score-lead";
 import { logDentistScoringBatch } from "@/lib/scoring-log";
 import { Lead } from "@/lib/types";
 import { getNicheConfig } from "@/lib/niches";
 import { EMPTY_LEAD_ENRICHMENT, PENDING_ENRICHMENT } from "@/lib/types";
+
+export const maxDuration = 120;
 
 const TARGET_LEAD_COUNT = 50;
 
@@ -237,11 +239,14 @@ export async function POST(request: Request) {
         priority: string;
       }> = [];
 
-      const scoredLeadsRaw = await Promise.all(
-        dedupedForScoring.map(async (lead) => {
-          const scored = await scoreLead(lead, nicheConfig, dentistBatch);
+      let scoredLeadsRaw: Lead[];
+
+      if (nicheConfig.id === "dentists") {
+        const batchScored = await scoreDentistLeadsBatched(dedupedForScoring, dentistBatch);
+        scoredLeadsRaw = dedupedForScoring.map((lead, i) => {
+          const scored = batchScored[i]!;
           if (scored.usedAiFallback) failedAIScores += 1;
-          if (nicheConfig.id === "dentists" && scored.dentistScoringMeta) {
+          if (scored.dentistScoringMeta) {
             dentistScoringLog.push({
               baseScore: scored.dentistScoringMeta.baseScore,
               finalScore: scored.score ?? 0,
@@ -259,8 +264,25 @@ export async function POST(request: Request) {
             priority: scored.priority,
             status: "new",
           };
-        })
-      );
+        });
+      } else {
+        scoredLeadsRaw = await Promise.all(
+          dedupedForScoring.map(async (lead) => {
+            const scored = await scoreLead(lead, nicheConfig, dentistBatch);
+            if (scored.usedAiFallback) failedAIScores += 1;
+            console.log(`[api/search] aiScored placeId=${lead.placeId} score=${scored.score}`);
+            return {
+              ...lead,
+              score: scored.score,
+              reason: scored.reason,
+              outreach: scored.outreach,
+              opportunityType: scored.opportunityType,
+              priority: scored.priority,
+              status: "new",
+            };
+          })
+        );
+      }
 
       const scoredLeads =
         nicheConfig.id === "dentists"

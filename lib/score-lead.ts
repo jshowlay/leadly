@@ -21,6 +21,20 @@ const dentistAiOutputSchema = z.object({
   outreach: z.string().min(1).max(280),
 });
 
+const dentistBatchItemsSchema = z.object({
+  items: z.array(
+    z.object({
+      index: z.number().int().min(0),
+      adjustment: z.number(),
+      reason: z.string(),
+      outreach: z.string(),
+    })
+  ),
+});
+
+/** ~16 leads per request balances latency, token limits, and JSON reliability. */
+const DENTIST_SCORE_BATCH_SIZE = 16;
+
 /** Template C — general patient-growth angle (also default when signals thin). */
 function dentistFallbackOutreachGeneral(): string {
   return "Hi — I came across your practice and thought there may be room to increase new patient bookings. We help dentists turn their local presence into more appointments — open to a quick idea?";
@@ -260,6 +274,143 @@ async function scoreDentistLead(
       dentistScoringMeta: { baseScore, aiAdjustment: 0 },
     };
   }
+}
+
+function buildDentistBatchPrompt(
+  chunk: Array<{ lead: Lead; baseScore: number; opportunityType: string }>
+): string {
+  const lines = chunk.map(
+    ({ lead, baseScore, opportunityType }, i) =>
+      `${i}. Name: ${lead.name}
+   Type: ${lead.primaryType ?? "N/A"}
+   Website: ${lead.website ?? "none"}
+   Rating: ${lead.rating ?? "unknown"}
+   Review count: ${lead.reviewCount ?? "unknown"}
+   Opportunity type: ${opportunityType}
+   Base score: ${baseScore}`
+  );
+  const n = chunk.length;
+  return `You are a sales strategist specializing in helping dental practices attract more patients.
+
+For EACH of the ${n} businesses below, produce:
+- adjustment: integer from -8 to +8 (small tweak to base score only; do not replace scoring)
+- reason: one specific sentence referencing real data, under 140 characters, no generic phrases like "great opportunity"
+- outreach: short personalized message under 280 characters; must feel human; reference patients, bookings, or appointments; include a subtle observation from the data
+
+Return ONLY valid JSON in this exact shape:
+{"items":[{"index":0,"adjustment":0,"reason":"...","outreach":"..."},...]}
+
+Rules:
+- items must have exactly ${n} entries
+- each index must be 0 through ${n - 1} exactly once
+- JSON only, no markdown
+
+Businesses:
+
+${lines.join("\n\n")}`;
+}
+
+async function scoreDentistChunkWithAi(
+  chunk: Array<{ lead: Lead; baseScore: number; opportunityType: string }>,
+  dentistBatch?: DentistScoringBatchContext
+): Promise<ScoreLeadResult[]> {
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) {
+    return Promise.all(chunk.map(({ lead }) => scoreDentistLead(lead, dentistBatch)));
+  }
+
+  const prompt = buildDentistBatchPrompt(chunk);
+
+  try {
+    const client = new OpenAI({ apiKey });
+    const completion = await client.chat.completions.create({
+      model: "gpt-4o-mini",
+      temperature: 0.25,
+      response_format: { type: "json_object" },
+      max_tokens: 8192,
+      messages: [{ role: "user", content: prompt }],
+    });
+
+    const content = completion.choices[0]?.message?.content ?? "{}";
+    const parsed = dentistBatchItemsSchema.parse(JSON.parse(content));
+    const indices = parsed.items.map((it) => it.index);
+    const unique = new Set(indices);
+    if (unique.size !== chunk.length || parsed.items.length !== chunk.length) {
+      throw new Error(`batch index set mismatch: want ${chunk.length} unique, got ${unique.size}`);
+    }
+    const maxIdx = Math.max(...indices);
+    const minIdx = Math.min(...indices);
+    if (minIdx !== 0 || maxIdx !== chunk.length - 1) {
+      throw new Error(`batch index range invalid: min=${minIdx} max=${maxIdx} n=${chunk.length}`);
+    }
+
+    const byIndex = new Map(parsed.items.map((it) => [it.index, it]));
+    const out: ScoreLeadResult[] = [];
+
+    for (let i = 0; i < chunk.length; i++) {
+      const row = chunk[i]!;
+      const item = byIndex.get(i);
+      if (!item) throw new Error(`missing batch index ${i}`);
+
+      const adj = clampAdjustment(item.adjustment);
+      const finalScore = clampScore(row.baseScore + adj);
+      const reason = sanitizeDentistReason(row.lead, item.reason);
+      const outreach = sanitizeDentistOutreach(
+        row.lead,
+        personalizeDentistOutreachWithSignals(row.lead, item.outreach)
+      );
+
+      console.log(
+        `[score-lead] dentist batch place="${row.lead.name}" base=${row.baseScore} adj=${adj} final=${finalScore} opp=${row.opportunityType}`
+      );
+
+      out.push({
+        score: finalScore,
+        reason,
+        outreach,
+        opportunityType: row.opportunityType,
+        priority: classifyPriorityFromScore(finalScore),
+        usedAiFallback: false,
+        dentistScoringMeta: { baseScore: row.baseScore, aiAdjustment: adj },
+      });
+    }
+
+    return out;
+  } catch (err) {
+    console.error("[score-lead] Dentist batch chunk failed; falling back to per-lead for chunk.", err);
+    return Promise.all(chunk.map(({ lead }) => scoreDentistLead(lead, dentistBatch)));
+  }
+}
+
+/**
+ * Scores dentist leads with far fewer OpenAI round trips than per-lead calls (better latency + fewer rate-limit issues).
+ */
+export async function scoreDentistLeadsBatched(
+  leads: Lead[],
+  dentistBatch?: DentistScoringBatchContext
+): Promise<ScoreLeadResult[]> {
+  if (leads.length === 0) return [];
+
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) {
+    return Promise.all(leads.map((l) => scoreDentistLead(l, dentistBatch)));
+  }
+
+  const rows = leads.map((lead) => ({
+    lead,
+    baseScore: computeBaseScore(lead, dentistBatch),
+    opportunityType: classifyOpportunityType(lead),
+  }));
+
+  const chunks: typeof rows[] = [];
+  for (let i = 0; i < rows.length; i += DENTIST_SCORE_BATCH_SIZE) {
+    chunks.push(rows.slice(i, i + DENTIST_SCORE_BATCH_SIZE));
+  }
+
+  const chunkResults = await Promise.all(
+    chunks.map((chunk) => scoreDentistChunkWithAi(chunk, dentistBatch))
+  );
+  return chunkResults.flat();
 }
 
 async function scoreGenericLead(lead: Lead, nicheConfig: NicheConfig): Promise<ScoreLeadResult> {

@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,6 +34,16 @@ export function SearchForm({
   const [location, setLocation] = useState(defaultLocation);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showLongWaitHint, setShowLongWaitHint] = useState(false);
+
+  useEffect(() => {
+    if (!loading) {
+      setShowLongWaitHint(false);
+      return;
+    }
+    const t = window.setTimeout(() => setShowLongWaitHint(true), 12_000);
+    return () => window.clearTimeout(t);
+  }, [loading]);
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -127,6 +137,11 @@ export function SearchForm({
               submitLabel
             )}
           </Button>
+          {loading ? (
+            <p className="text-center text-xs leading-relaxed text-slate-500">
+              {showLongWaitHint ? SITE.searchSubmitWaitHint : "This step can take up to a minute on a full pack."}
+            </p>
+          ) : null}
           {error ? <p className="text-sm text-red-600">{error}</p> : null}
         </form>
       </CardContent>
