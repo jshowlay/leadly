@@ -1,10 +1,10 @@
 /** Marketing CTAs and display constants — single source of truth for funnel copy. */
 
 export const SITE = {
-  /** Primary funnel CTA — landing, nav, pricing card, final CTA, search submit */
-  primaryCta: "Build My Lead Pack",
-  /** Secondary — scroll to product detail on landing */
-  secondaryCta: "See what’s included",
+  /** Primary funnel CTA — landing, nav, pricing card, search submit */
+  primaryCta: "Get Leads Now",
+  /** Secondary — scroll to proof / sample on landing */
+  secondaryCta: "View Sample Leads",
   /** After search, when user still needs to pay */
   unlockCta: "Unlock opportunity pack ($49)",
   leadPackName: "Dentily Practice Opportunity Pack",
@@ -18,9 +18,9 @@ export const SITE = {
 
 /** Landing hero + search page headlines */
 export const POSITIONING = {
-  heroHeadline: "Find Dentists Losing Patients — And Close Them as Clients",
+  heroHeadline: "Stop Guessing. Start Closing Dental Clients.",
   heroSubheadline:
-    "Dentily helps agencies, freelancers, and consultants find dental practices with clear growth gaps, prioritize the best opportunities, and start outreach with confidence.",
+    "Dentily shows you exactly which dental practices are ready to grow — and what to say to win them.",
   heroSupportLine:
     "Each lead pack includes scored practices, best available contact paths, opportunity insight, and ready-to-use outreach messaging.",
   heroMicrocopy:

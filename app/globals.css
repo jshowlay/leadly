@@ -17,4 +17,9 @@
   .container-page {
     @apply mx-auto w-full max-w-6xl px-4;
   }
+
+  /** Landing page: ~1100px centered SaaS layout */
+  .landing-max {
+    @apply mx-auto w-full max-w-[1100px] px-4;
+  }
 }
