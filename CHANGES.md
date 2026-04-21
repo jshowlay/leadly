@@ -2,6 +2,20 @@
 
 This note is for you, not for a code review. It explains what was wrong with the Austin-style CSV output and what we changed at the source.
 
+## Homepage real sample leads
+
+**What changed**
+
+1. **`components/landing/live-sample-leads.tsx`** — Replaced fabricated Austin demo cards with three **real Miami** examples (Dentists at Midtown, Ultra Smile DentaSpa, My Dentist in Miami), retitled the block to **Real leads from recent searches**, removed the “demonstration purposes” line, and added a low-key download link for the Austin sample CSV.
+2. **`components/landing/sample-lead-card.tsx`** — Hero mini-card now mirrors the first real example (Dentists at Midtown) so the above-the-fold preview is not a Googled-and-empty fake name.
+3. **`public/sample/dentily-sample-austin.csv`** — New **11-row** file (instruction row + **10** data rows) in the **same column layout as paid export**, built from `buildLeadPackRowsFromExport` on the in-repo Austin exports (`lib/austin-sample-pack-rows.ts` + `lib/lead-pipeline-fixtures.ts`). Regenerate with `npm run generate-sample-austin-dl`.
+
+**Mix note:** The selection pass tries to reserve one row for **High Volume Saturation**, but the combined Austin exports in-repo do not currently include any practice at the product threshold (1000+ reviews at ≥4.8 stars per `REVIEW_SATURATION` in `lib/lead-pipeline-config.ts`), so that slot is filled with the next eligible real row instead.
+
+**Why:** Agency buyers vet everything; obviously fake sample names undermined trust before the $49 ask.
+
+**Sample CSV path:** `public/sample/dentily-sample-austin.csv` (served at `/sample/dentily-sample-austin.csv`).
+
 ## Pre-launch polish
 
 **What changed**

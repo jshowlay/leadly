@@ -3,9 +3,9 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
 const WHY_THIS_LEAD = [
-  "Low Google review count compared to competitors",
-  "No visible Google Ads activity",
-  "Weak local SEO presence",
+  "4.2-star public rating with 469 Google reviews",
+  "Rating likely filters them out of high-intent local searches",
+  "Contact form path — Tier 1 ready to contact",
 ] as const;
 
 export function SampleLeadCard({ className }: { className?: string }) {
@@ -24,16 +24,16 @@ export function SampleLeadCard({ className }: { className?: string }) {
             </span>
             <div>
               <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Sample Practice Opportunity</p>
-              <p className="text-lg font-semibold leading-tight text-slate-900">Austin Family Dental</p>
+              <p className="text-lg font-semibold leading-tight text-slate-900">Dentists at Midtown</p>
             </div>
           </div>
           <span className="shrink-0 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-800 ring-1 ring-emerald-600/20">
-            High Opportunity
+            Reputation Gap
           </span>
         </div>
         <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-white px-3 py-2">
           <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Score</p>
-          <p className="text-xl font-bold leading-none text-slate-900">87</p>
+          <p className="text-xl font-bold leading-none text-slate-900">76</p>
         </div>
       </CardHeader>
       <CardContent className="space-y-5 p-6 pt-5">
@@ -53,7 +53,7 @@ export function SampleLeadCard({ className }: { className?: string }) {
             <Sparkles className="h-3.5 w-3.5 text-blue-600" aria-hidden />
             Best Contact Method
           </p>
-          <p className="mt-2 text-sm font-semibold leading-relaxed text-slate-900">Email (high confidence)</p>
+          <p className="mt-2 text-sm font-semibold leading-relaxed text-slate-900">Contact Form</p>
         </div>
         <div className="space-y-2 rounded-lg border border-slate-100 bg-white p-4 text-sm text-slate-700">
           <p className="flex items-center gap-2">
@@ -61,15 +61,15 @@ export function SampleLeadCard({ className }: { className?: string }) {
             <span className="text-slate-500">What to Pitch:</span>
           </p>
           <p className="text-sm leading-relaxed text-slate-800">
-            Help increase patient bookings through local SEO and ads.
+            {`{{your_name}} here, from {{your_company}}. {{your_credibility_line}} — Google shows 4.2 stars with 469 reviews. In Miami that number is often the first cut when someone compares practices.`}
           </p>
         </div>
         <div className="flex flex-wrap gap-3 text-xs text-slate-500">
           <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-1">
-            <Mail className="h-3.5 w-3.5" aria-hidden /> Email outreach ready
+            <Mail className="h-3.5 w-3.5" aria-hidden /> Contact form path
           </span>
           <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-1">
-            <Megaphone className="h-3.5 w-3.5" aria-hidden /> Marketing-fit signal
+            <Megaphone className="h-3.5 w-3.5" aria-hidden /> High-priority signal
           </span>
         </div>
         <p className="text-center text-[11px] leading-relaxed text-slate-500">

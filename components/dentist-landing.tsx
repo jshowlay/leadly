@@ -213,7 +213,7 @@ export function DentistLanding() {
           <Card className="mt-10 border-2 border-slate-900 shadow-lg">
             <CardHeader className="text-center">
               <CardTitle className="text-xl">{SITE.leadPackName}</CardTitle>
-              <p className="text-4xl font-bold">{SITE.leadPackPriceLabel}</p>
+              <p className="text-4xl font-bold">{`$${String(SITE.leadPackPriceLabel).replace(/^\$/, "")}`}</p>
               <p className="text-sm text-slate-600">One-time · USD · no subscription</p>
             </CardHeader>
             <CardContent className="space-y-5">

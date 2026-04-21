@@ -7,58 +7,80 @@ type LeadPreview = {
   name: string;
   city: string;
   score: number;
-  badge: string;
+  priority: string;
+  opportunityType: string;
+  actionTier: string;
+  estimatedOpportunity: string;
   why: string[];
   contact: string;
-  pitch: string;
+  outreachSnippet: string;
 };
 
 const LIVE_SAMPLE_LEADS: LeadPreview[] = [
   {
-    name: "Austin Family Dental",
-    city: "Austin, TX",
-    score: 87,
-    badge: "High Opportunity",
+    name: "Dentists at Midtown",
+    city: "Miami, FL",
+    score: 76,
+    priority: "High",
+    opportunityType: "Reputation Gap",
+    actionTier: "Tier 1: Ready to Contact",
+    estimatedOpportunity: "$3k–$12k/mo",
     why: [
-      "Low Google review count compared to competitors",
-      "No visible Google Ads activity",
-      "Weak local SEO presence",
+      "4.2-star public rating",
+      "469 Google reviews",
+      "Rating likely filtering them out of high-intent local searches",
     ],
-    contact: "Email (high confidence)",
-    pitch: "Help increase patient bookings through local SEO and paid ads",
+    contact: "Contact Form",
+    outreachSnippet:
+      "{{your_name}} here, from {{your_company}}. {{your_credibility_line}} — Google shows 4.2 stars with 469 reviews. In Miami that number is often the first cut when someone compares practices.",
   },
   {
-    name: "Bright Smile Dental",
-    city: "Round Rock, TX",
-    score: 81,
-    badge: "Strong Fit",
+    name: "Ultra Smile DentaSpa",
+    city: "Miami, FL",
+    score: 58,
+    priority: "High",
+    opportunityType: "Established Static",
+    actionTier: "Tier 1: Ready to Contact",
+    estimatedOpportunity: "$5k–$20k/mo",
     why: [
-      "Inconsistent online reviews",
-      "Limited search visibility for local treatment terms",
-      "Website has weak conversion signals",
+      "4.8-star rating, 739 reviews",
+      "Strong profile but no visible growth motion",
+      "Ready for paid acquisition or conversion work",
     ],
-    contact: "Contact form (reliable)",
-    pitch: "Improve local visibility and turn more website visitors into booked appointments",
+    contact: "Email",
+    outreachSnippet:
+      "{{your_name}} here, from {{your_company}}. {{your_credibility_line}} — 4.8 stars, 739 reviews. Strong profile. What's the growth lever you haven't tried yet?",
   },
   {
-    name: "Riverbend Dental Care",
-    city: "Cedar Park, TX",
-    score: 78,
-    badge: "Good Opportunity",
+    name: "My Dentist in Miami",
+    city: "Miami, FL",
+    score: 64,
+    priority: "High",
+    opportunityType: "Newer Unknown",
+    actionTier: "Tier 1: Ready to Contact",
+    estimatedOpportunity: "$3k–$12k/mo",
     why: [
-      "Competitors appear stronger in local rankings",
-      "Low review momentum",
-      "No clear paid traffic presence",
+      "4.3-star rating, only 73 reviews",
+      "Low review count vs. nearby competitors",
+      "Visibility and reputation-building is the immediate unlock",
     ],
-    contact: "Phone or form",
-    pitch: "Increase patient demand with stronger local search presence and better follow-up conversion",
+    contact: "Email",
+    outreachSnippet:
+      "{{your_name}} here, from {{your_company}}. {{your_credibility_line}} — only 73 reviews so far. Early-stage practices win or lose on whether Google shows enough recent detail.",
   },
 ];
 
-function badgeTone(label: string): string {
-  if (label === "High Opportunity") return "bg-emerald-50 text-emerald-800 ring-emerald-600/20";
-  if (label === "Strong Fit") return "bg-blue-50 text-blue-800 ring-blue-600/20";
-  return "bg-amber-50 text-amber-800 ring-amber-600/20";
+function clipPitch(text: string, maxChars: number): string {
+  const t = text.trim();
+  if (t.length <= maxChars) return t;
+  return `${t.slice(0, maxChars).trimEnd()}…`;
+}
+
+function badgeTone(opportunityType: string): string {
+  if (opportunityType === "Reputation Gap") return "bg-emerald-50 text-emerald-800 ring-emerald-600/20";
+  if (opportunityType === "Established Static") return "bg-blue-50 text-blue-800 ring-blue-600/20";
+  if (opportunityType === "Newer Unknown") return "bg-amber-50 text-amber-800 ring-amber-600/20";
+  return "bg-slate-50 text-slate-800 ring-slate-600/20";
 }
 
 export function LiveSampleLeads() {
@@ -67,12 +89,15 @@ export function LiveSampleLeads() {
       <div className="landing-max">
         <div className="mx-auto max-w-3xl text-center">
           <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Product Preview</p>
-          <h2 className="mt-3 text-3xl font-bold tracking-tight text-slate-900 md:text-4xl">Live Sample Leads</h2>
+          <h2 className="mt-3 text-3xl font-bold tracking-tight text-slate-900 md:text-4xl">
+            Real leads from recent searches
+          </h2>
           <p className="mt-4 text-base leading-relaxed text-slate-600 md:text-lg">
-            See the kind of high-opportunity dental practices Dentily helps you find.
+            These are real dental practices from actual Dentily output — not mockups.
           </p>
           <p className="mt-2 text-sm text-slate-500">
-            Each lead includes opportunity signals, best contact method, and a relevant pitch angle.
+            Each row includes a score, a contact path, and an outreach template you customize with your own name and
+            pitch.
           </p>
         </div>
 
@@ -87,6 +112,9 @@ export function LiveSampleLeads() {
                   <div>
                     <CardTitle className="text-xl text-slate-900">{lead.name}</CardTitle>
                     <p className="mt-1 text-sm text-slate-500">{lead.city}</p>
+                    <p className="mt-1 text-xs text-slate-500">
+                      Priority: {lead.priority} · {lead.actionTier}
+                    </p>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-right">
@@ -96,10 +124,10 @@ export function LiveSampleLeads() {
                     <span
                       className={cn(
                         "rounded-full px-2.5 py-1 text-xs font-semibold ring-1",
-                        badgeTone(lead.badge)
+                        badgeTone(lead.opportunityType)
                       )}
                     >
-                      {lead.badge}
+                      {lead.opportunityType}
                     </span>
                   </div>
                 </div>
@@ -119,17 +147,28 @@ export function LiveSampleLeads() {
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Best Contact Method</p>
                   <p className="mt-2 text-sm font-semibold text-slate-900">{lead.contact}</p>
+                  <p className="mt-2 text-xs leading-relaxed text-slate-600">
+                    {`Est. opportunity: ${lead.estimatedOpportunity}`}
+                  </p>
                 </div>
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">What to Pitch</p>
-                  <p className="mt-2 text-sm leading-relaxed text-slate-700">{lead.pitch}</p>
+                  <p className="mt-2 text-sm leading-relaxed text-slate-700">{clipPitch(lead.outreachSnippet, 120)}</p>
                 </div>
               </CardContent>
             </Card>
           ))}
         </div>
 
-        <p className="mt-6 text-center text-xs text-slate-500">Sample data shown for demonstration purposes</p>
+        <p className="mt-8 text-center">
+          <a
+            href="/sample/dentily-sample-austin.csv"
+            download
+            className="text-sm text-slate-600 underline decoration-slate-300 underline-offset-4 hover:text-slate-900"
+          >
+            ↓ Download a real 10-lead sample pack (Austin, TX) — no signup required
+          </a>
+        </p>
 
         <div className="mx-auto mt-10 max-w-2xl rounded-2xl border border-slate-200 bg-slate-50 p-6 text-center md:p-8">
           <h3 className="text-2xl font-bold tracking-tight text-slate-900">Find Better Dental Leads for Outreach</h3>
