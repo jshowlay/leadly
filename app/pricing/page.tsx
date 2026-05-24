@@ -30,7 +30,7 @@ export default function PricingPage() {
         </p>
       </header>
 
-      <PricingSection enableCheckout hideIntro />
+      <PricingSection hideIntro />
 
       <PricingHowToUse />
 
