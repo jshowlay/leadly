@@ -388,7 +388,9 @@ function applyAddressClusters(rows: PipelineRow[]): PipelineRow[] {
   }
 
   return rows.map((r, i) => {
-    const cn = notes.get(i) ?? "";
+    const shared = notes.get(i) ?? "";
+    const existing = r.cluster_notes?.trim() ?? "";
+    const cn = [existing, shared].filter(Boolean).join(existing && shared ? " " : "");
     if (!demote.has(i)) {
       return { ...r, cluster_notes: cn, cluster_demoted: false };
     }
@@ -643,18 +645,20 @@ export function buildLeadPackRowsFromExport(rows: ExportLeadRow[]): LeadPackCsvR
     const lead = exportRowToLead(r, i);
     const score = computeBaseScore(lead, batchCtx);
     const priority = classifyPriorityFromScore(score);
-    const why = computeWhyNow({
-      website: r.website,
-      rating: r.rating,
-      review_count: r.review_count,
-    });
+    const why =
+      r.why_now?.trim() ||
+      computeWhyNow({
+        website: r.website,
+        rating: r.rating,
+        review_count: r.review_count,
+      });
     return {
       ...r,
       score,
       priority,
       opportunity_type: classifyOpportunityType(lead),
       why_now: why,
-      cluster_notes: "",
+      cluster_notes: r.cluster_notes?.trim() ?? "",
       cluster_demoted: false,
     };
   });
@@ -673,7 +677,9 @@ export function buildLeadPackRowsFromExport(rows: ExportLeadRow[]): LeadPackCsvR
   const dataRows = sorted.map((r, i) => {
     const lead = exportRowToLead(r, i);
     void enrichWithApollo(r.name ?? "", csvCell(r.website), parseCityFromAddress(r.address) ?? "");
-    const { otherEmails, cleanedNotes } = extractAlternateEmailsFromNotes(r.enrichment_notes);
+    const fromNotes = extractAlternateEmailsFromNotes(r.enrichment_notes);
+    const otherEmails = r.other_emails?.trim() || fromNotes.otherEmails;
+    const cleanedNotes = fromNotes.cleanedNotes;
     const website = normalizeUrlForCsv(r.website);
     const contactForm = normalizeUrlForCsv(r.contact_form_url);
     const mapsUrl = normalizeUrlForCsv(r.maps_url);
@@ -744,7 +750,7 @@ export function buildLeadPackRowsFromExport(rows: ExportLeadRow[]): LeadPackCsvR
       maps_url: mapsUrl,
       top_lead: topIdx.has(i) ? ("Yes" as const) : ("No" as const),
       placeholders_remaining: placeholders,
-      apollo_enrichment: "",
+      apollo_enrichment: csvCell(r.apollo_enrichment),
     };
   });
 
@@ -787,6 +793,19 @@ const CSV_COLUMN_ORDER: Array<{ key: keyof LeadPackCsvRow; label: string }> = [
   { key: "placeholders_remaining", label: "Placeholders Remaining" },
   { key: "apollo_enrichment", label: "Apollo Enrichment" },
 ];
+
+/** Lead pack rows keyed by CSV column header (excludes instruction row). */
+export function packRowsToCsvRecords(rows: LeadPackCsvRow[]): Record<string, unknown>[] {
+  return rows
+    .filter((r) => !isLeadPackInstructionRow(r))
+    .map((row) => {
+      const rec: Record<string, unknown> = {};
+      for (const { key, label } of CSV_COLUMN_ORDER) {
+        rec[label] = row[key];
+      }
+      return rec;
+    });
+}
 
 /** Single header row + data rows (Excel / Sheets friendly). */
 export function buildLeadPackCsv(rows: LeadPackCsvRow[]): string {

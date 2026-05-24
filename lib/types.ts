@@ -14,6 +14,7 @@ export type EmailSource =
   | "footer"
   | "about_page"
   | "manual"
+  | "inferred"
   | "unknown"
   | null;
 
@@ -116,11 +117,15 @@ export type ExportLeadRow = {
   website: string | null;
   phone: string | null;
   primary_email: string | null;
+  other_emails?: string | null;
   contact_form_url: string | null;
   email_status: string | null;
   email_source: string | null;
   enrichment_notes: string | null;
   email_rejection_reason: string | null;
+  why_now?: string | null;
+  cluster_notes?: string | null;
+  apollo_enrichment?: string | null;
   /** At least one of email, form URL, or phone. */
   contactable: boolean;
   outreach_readiness: string | null;

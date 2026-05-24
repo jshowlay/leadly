@@ -43,9 +43,35 @@ const FAQ_ITEMS: { q: string; a: string }[] = [
     q: "What's the difference between Starter and Pro?",
     a: "Starter is a one-time CSV for one market ($49). Pro is a living pipeline: fresh leads every month, tracked in your dashboard, never duplicated ($99/mo).",
   },
+  {
+    q: "What's the difference between Pro and Growth?",
+    a: "Pro includes done-for-you outreach (coming soon) and is best for individuals or small teams running one to a few markets. Growth is built for high-volume prospecting across unlimited territories with bulk exports — outreach is handled by you.",
+  },
 ];
 
-export function PricingFaq() {
+type PricingFaqProps = {
+  layout?: "accordion" | "grid";
+};
+
+export function PricingFaq({ layout = "accordion" }: PricingFaqProps) {
+  if (layout === "grid") {
+    return (
+      <section className="dp-faq" aria-labelledby="pricing-faq-heading">
+        <h2 id="pricing-faq-heading" className="dp-serif">
+          Frequently asked questions
+        </h2>
+        <div className="dp-faq-grid">
+          {FAQ_ITEMS.map((item) => (
+            <div key={item.q}>
+              <p className="dp-faq-q">{item.q}</p>
+              <p className="dp-faq-a">{item.a}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+    );
+  }
+
   return (
     <div className="mt-12 border-t border-slate-200 pt-10">
       <h2 className="text-lg font-semibold text-slate-900">Frequently asked questions</h2>

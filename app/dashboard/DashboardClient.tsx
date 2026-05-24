@@ -147,6 +147,14 @@ export function DashboardClient({ user, subscription, searches: initialSearches 
             <p className="mt-1 text-sm text-slate-600">{user.email}</p>
           </div>
           <div className="flex flex-wrap gap-2">
+            {subscription?.plan === "pro" && isActive && (
+              <Link
+                href="/dashboard/outreach"
+                className={cn(buttonVariants({ variant: "outline" }), "inline-flex items-center")}
+              >
+                AI outreach
+              </Link>
+            )}
             <Button type="button" variant="outline" onClick={() => openPortal()}>
               Manage billing
             </Button>

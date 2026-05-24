@@ -8,7 +8,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { sanitizeLeadsForClient } from "@/lib/client-leads";
 import { getSearchWithLeads, isDatabaseConfigured } from "@/lib/db";
 import { canExportLeadPack } from "@/lib/search-status";
-import { DeferredEnrichment } from "@/components/deferred-enrichment";
 import { HowToUsePack } from "@/components/how-to-use-pack";
 import { getNicheConfig } from "@/lib/niches";
 import { SITE } from "@/lib/site-config";
@@ -90,9 +89,6 @@ export default async function ResultsPage({
             </Card>
           ) : parsed ? (
             <div className="space-y-4">
-              {parsed.status !== "failed" && parsed.leads.length > 0 ? (
-                <DeferredEnrichment searchId={parsed.id} />
-              ) : null}
               <Card>
                 <CardHeader>
                   <CardTitle>Opportunity pack summary</CardTitle>

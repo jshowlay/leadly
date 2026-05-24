@@ -1,0 +1,606 @@
+/* Dentily homepage redesign — scoped under .dentily-home */
+
+.dentily-home {
+  --color-bg: #f7f5f0;
+  --color-surface: #ffffff;
+  --color-ink: #1a1a18;
+  --color-muted: #5a5a55;
+  --color-hint: #888880;
+  --color-green: #2e7d52;
+  --color-green-bg: #e8f5ee;
+  --color-amber: #9a6200;
+  --color-amber-bg: #fff6e5;
+  --color-border: rgba(0, 0, 0, 0.1);
+
+  background: var(--color-bg);
+  color: var(--color-ink);
+  font-family: "DM Sans", system-ui, sans-serif;
+}
+
+.dentily-home h1,
+.dentily-home h2,
+.dentily-home h3,
+.dentily-home .dh-serif {
+  font-family: "Instrument Serif", Georgia, serif;
+  font-weight: 400;
+}
+
+.dentily-home em {
+  font-style: italic;
+  color: var(--color-green);
+}
+
+.dentily-home .dh-section {
+  padding: 72px 40px;
+}
+
+@media (max-width: 768px) {
+  .dentily-home .dh-section {
+    padding: 48px 20px;
+  }
+}
+
+/* Header on warm bg */
+.dentily-home .dh-header {
+  background: var(--color-bg);
+  border-bottom: 0.5px solid var(--color-border);
+}
+
+.dentily-home .dh-header.is-scrolled {
+  background: rgba(247, 245, 240, 0.95);
+}
+
+/* Hero */
+.dentily-home .dh-hero {
+  padding: 72px 40px 64px;
+  border-bottom: 0.5px solid var(--color-border);
+}
+
+.dentily-home .dh-hero-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
+  align-items: center;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.dentily-home .dh-hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--color-green-bg);
+  color: var(--color-green);
+  border-radius: 20px;
+  padding: 6px 14px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 20px;
+}
+
+.dentily-home .dh-hero-badge-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-green);
+}
+
+.dentily-home .dh-hero h1 {
+  font-size: clamp(36px, 4vw, 48px);
+  line-height: 1.12;
+  letter-spacing: -0.5px;
+  color: var(--color-ink);
+  margin: 0;
+}
+
+.dentily-home .dh-hero-lead {
+  margin-top: 20px;
+  font-size: 17px;
+  line-height: 1.6;
+  color: var(--color-muted);
+  max-width: 480px;
+}
+
+.dentily-home .dh-hero-ctas {
+  margin-top: 28px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px 24px;
+}
+
+.dentily-home .dh-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-ink);
+  color: var(--color-bg);
+  border-radius: 7px;
+  padding: 11px 22px;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  border: none;
+  min-height: 44px;
+}
+
+.dentily-home .dh-btn-primary:hover {
+  opacity: 0.9;
+}
+
+.dentily-home .dh-btn-ghost {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-muted);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.dentily-home .dh-btn-ghost:hover {
+  color: var(--color-ink);
+}
+
+.dentily-home .dh-social-proof {
+  margin-top: 28px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.dentily-home .dh-avatars {
+  display: flex;
+  align-items: center;
+}
+
+.dentily-home .dh-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid var(--color-bg);
+  margin-left: -6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  font-weight: 600;
+  color: white;
+}
+
+.dentily-home .dh-avatar:first-child {
+  margin-left: 0;
+}
+
+.dentily-home .dh-social-text {
+  font-size: 12px;
+  color: var(--color-hint);
+}
+
+.dentily-home .dh-hero-micro {
+  margin-top: 12px;
+  font-size: 13px;
+  color: var(--color-hint);
+}
+
+/* Hero visual */
+.dentily-home .dh-hero-visual {
+  position: relative;
+  height: 340px;
+}
+
+.dentily-home .dh-stack-card {
+  position: absolute;
+  width: 280px;
+  border-radius: 14px;
+  padding: 16px 18px;
+  background: var(--color-surface);
+  border: 0.5px solid var(--color-border);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  font-size: 13px;
+  color: var(--color-hint);
+}
+
+.dentily-home .dh-stack-card--back {
+  top: 24px;
+  right: 20px;
+  opacity: 0.4;
+  transform: rotate(2.5deg);
+}
+
+.dentily-home .dh-stack-card--mid {
+  top: 12px;
+  right: 36px;
+  opacity: 0.6;
+  transform: rotate(-2deg);
+}
+
+.dentily-home .dh-lead-card-wrap {
+  position: relative;
+  z-index: 2;
+  margin-left: auto;
+  margin-right: 0;
+  width: fit-content;
+}
+
+.dentily-home .dh-lead-card {
+  width: 308px;
+  border-radius: 14px;
+  padding: 20px 22px;
+  background: var(--color-surface);
+  border: 0.5px solid var(--color-border);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.dentily-home .dh-lead-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.dentily-home .dh-lead-card-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-ink);
+  line-height: 1.25;
+}
+
+.dentily-home .dh-lead-card-city {
+  font-size: 12px;
+  color: var(--color-hint);
+  margin-top: 2px;
+}
+
+.dentily-home .dh-score-badge {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: var(--color-ink);
+  color: var(--color-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Instrument Serif", Georgia, serif;
+  font-size: 20px;
+  font-weight: 400;
+  flex-shrink: 0;
+}
+
+.dentily-home .dh-tag-pill {
+  display: inline-block;
+  margin-top: 12px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.dentily-home .dh-tag-pill--amber {
+  background: var(--color-amber-bg);
+  color: var(--color-amber);
+}
+
+.dentily-home .dh-signal-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--color-muted);
+  line-height: 1.4;
+}
+
+.dentily-home .dh-signal-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--color-green);
+  margin-top: 5px;
+  flex-shrink: 0;
+}
+
+.dentily-home .dh-lead-divider {
+  margin: 14px 0 10px;
+  border: none;
+  border-top: 0.5px solid var(--color-border);
+}
+
+.dentily-home .dh-lead-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.dentily-home .dh-lead-footer-label {
+  color: var(--color-hint);
+}
+
+.dentily-home .dh-lead-footer-value {
+  text-align: right;
+  color: var(--color-green);
+  font-weight: 600;
+}
+
+.dentily-home .dh-float-badge {
+  position: absolute;
+  z-index: 3;
+  background: var(--color-surface);
+  border-radius: 10px;
+  border: 0.5px solid var(--color-border);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  padding: 8px 13px;
+  font-size: 12px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.dentily-home .dh-float-badge--leads {
+  bottom: 8px;
+  left: 0;
+  color: var(--color-green);
+}
+
+.dentily-home .dh-float-badge--outreach {
+  top: 0;
+  right: 0;
+  color: var(--color-amber);
+}
+
+/* Stats */
+.dentily-home .dh-stats {
+  background: var(--color-ink);
+  padding: 40px;
+}
+
+.dentily-home .dh-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  max-width: 1100px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.dentily-home .dh-stat-num {
+  font-family: "Instrument Serif", Georgia, serif;
+  font-size: 36px;
+  color: var(--color-bg);
+  line-height: 1;
+}
+
+.dentily-home .dh-stat-label {
+  margin-top: 8px;
+  font-size: 12px;
+  color: rgba(247, 245, 240, 0.5);
+}
+
+/* How it works */
+.dentily-home .dh-hiw {
+  background: var(--color-surface);
+}
+
+.dentily-home .dh-hiw-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-hint);
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+.dentily-home .dh-hiw h2 {
+  text-align: center;
+  font-size: clamp(28px, 3.5vw, 34px);
+  line-height: 1.15;
+  letter-spacing: -0.3px;
+  color: var(--color-ink);
+  margin: 0 auto;
+  max-width: 640px;
+}
+
+.dentily-home .dh-hiw-grid {
+  margin-top: 48px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  max-width: 1100px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.dentily-home .dh-step-card {
+  position: relative;
+  background: var(--color-bg);
+  border: 0.5px solid var(--color-border);
+  border-radius: 14px;
+  padding: 28px 26px;
+}
+
+.dentily-home .dh-step-num {
+  position: absolute;
+  top: 16px;
+  right: 20px;
+  font-family: "Instrument Serif", Georgia, serif;
+  font-size: 38px;
+  color: rgba(0, 0, 0, 0.07);
+  line-height: 1;
+  pointer-events: none;
+}
+
+.dentily-home .dh-step-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  background: var(--color-ink);
+  color: var(--color-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dentily-home .dh-step-title {
+  margin-top: 18px;
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--color-ink);
+}
+
+.dentily-home .dh-step-body {
+  margin-top: 8px;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--color-muted);
+}
+
+.dentily-home .dh-step-preview {
+  margin-top: 20px;
+  background: var(--color-surface);
+  border-radius: 10px;
+  border: 0.5px solid var(--color-border);
+  padding: 14px 16px;
+  font-size: 12px;
+}
+
+.dentily-home .dh-faux-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 0.5px solid var(--color-border);
+  border-radius: 8px;
+  color: var(--color-muted);
+}
+
+.dentily-home .dh-faux-search-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-green);
+  flex-shrink: 0;
+}
+
+.dentily-home .dh-faux-hint {
+  margin-top: 8px;
+  color: var(--color-hint);
+  font-size: 11px;
+}
+
+.dentily-home .dh-score-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.dentily-home .dh-score-row:last-child {
+  margin-bottom: 0;
+}
+
+.dentily-home .dh-score-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--color-ink);
+  font-size: 11px;
+}
+
+.dentily-home .dh-score-bar-wrap {
+  width: 72px;
+  height: 4px;
+  background: rgba(0, 0, 0, 0.08);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.dentily-home .dh-score-bar-fill {
+  height: 100%;
+  background: var(--color-ink);
+  border-radius: 2px;
+}
+
+.dentily-home .dh-score-val {
+  width: 22px;
+  text-align: right;
+  font-weight: 600;
+  color: var(--color-ink);
+  font-size: 11px;
+}
+
+.dentily-home .dh-pitch-quote {
+  font-family: "Instrument Serif", Georgia, serif;
+  font-size: 32px;
+  line-height: 0;
+  color: rgba(0, 0, 0, 0.08);
+  margin-bottom: 4px;
+}
+
+.dentily-home .dh-pitch-text {
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--color-muted);
+}
+
+.dentily-home .dh-pitch-hl {
+  background: var(--color-amber-bg);
+  border-radius: 2px;
+  padding: 0 2px;
+  color: var(--color-amber);
+}
+
+.dentily-home .dh-pitch-ok {
+  margin-top: 10px;
+  color: var(--color-green);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+@media (max-width: 768px) {
+  .dentily-home .dh-hero {
+    padding: 48px 20px;
+  }
+
+  .dentily-home .dh-hero-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dentily-home .dh-hero-visual {
+    height: auto;
+    min-height: 320px;
+    margin-top: 32px;
+  }
+
+  .dentily-home .dh-lead-card {
+    width: 100%;
+    max-width: 308px;
+  }
+
+  .dentily-home .dh-lead-card-wrap {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .dentily-home .dh-float-badge {
+    display: none;
+  }
+
+  .dentily-home .dh-stats {
+    padding: 32px 20px;
+  }
+
+  .dentily-home .dh-stats-grid {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+
+  .dentily-home .dh-hiw-grid {
+    grid-template-columns: 1fr;
+  }
+}

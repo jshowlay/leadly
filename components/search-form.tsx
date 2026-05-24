@@ -16,9 +16,12 @@ type SearchFormProps = {
   cardTitle?: string;
   cardDescription?: string;
   submitLabel?: string;
-  /** When true, niche is fixed to defaultNiche (hidden field) — better for dentist-only funnel */
   hideNicheField?: boolean;
   exampleMarkets?: ExampleMarketChip[];
+  /** Warm two-column search page layout */
+  variant?: "default" | "territory";
+  formId?: string;
+  onLocationChange?: (location: string) => void;
 };
 
 export function SearchForm({
@@ -29,9 +32,17 @@ export function SearchForm({
   submitLabel = SITE.primaryCta,
   hideNicheField = false,
   exampleMarkets,
+  variant = "default",
+  formId,
+  onLocationChange,
 }: SearchFormProps) {
   const [niche, setNiche] = useState(defaultNiche);
   const [location, setLocation] = useState(defaultLocation);
+
+  function updateLocation(value: string) {
+    setLocation(value);
+    onLocationChange?.(value);
+  }
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showLongWaitHint, setShowLongWaitHint] = useState(false);
@@ -75,11 +86,137 @@ export function SearchForm({
       let message = err instanceof Error ? err.message : "Something went wrong.";
       if (/failed to fetch|networkerror|load failed|network request failed/i.test(message)) {
         message =
-          "We could not complete the request (often a timeout while building your pack, or the dev server stopped). Wait for the terminal to finish, hard-refresh, then try again. For faster local runs set DENTILY_DISABLE_EMAIL_ENRICHMENT=1.";
+          "We could not complete the request (often a timeout while building your pack, or the dev server stopped). Wait for the terminal to finish, hard-refresh, then try again.";
       }
       setError(message);
       setLoading(false);
     }
+  }
+
+  const formBody = (
+    <form
+      id={formId}
+      className={variant === "territory" ? "flex flex-col gap-5" : "space-y-4"}
+      onSubmit={onSubmit}
+    >
+      {hideNicheField ? (
+        <input type="hidden" name="niche" value={niche} readOnly />
+      ) : (
+        <Input
+          placeholder="Niche (e.g. dentists)"
+          value={niche}
+          onChange={(e) => setNiche(e.target.value)}
+          required
+          disabled={loading}
+        />
+      )}
+
+      {variant === "territory" ? (
+        <div>
+          <label className="ds-field-label" htmlFor="dentily-search-location">
+            Location
+          </label>
+          <div className="ds-input-wrap">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden className="shrink-0">
+              <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="1.75" className="text-[#888880]" />
+              <path d="M20 20l-4-4" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" className="text-[#888880]" />
+            </svg>
+            <input
+              id="dentily-search-location"
+              placeholder="City, region, or ZIP (e.g. Austin, TX)"
+              value={location}
+              onChange={(e) => updateLocation(e.target.value)}
+              required
+              autoComplete="address-level2"
+              disabled={loading}
+            />
+          </div>
+          {exampleMarkets?.length ? (
+            <div className="mt-3">
+              <span className="ds-chips-label">Try:</span>
+              <div className="ds-chips">
+                {exampleMarkets.map((chip) => (
+                  <button
+                    key={chip.label}
+                    type="button"
+                    disabled={loading}
+                    className="ds-chip"
+                    onClick={() => updateLocation(chip.location)}
+                  >
+                    {chip.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : null}
+        </div>
+      ) : (
+        <div>
+          <Input
+            placeholder="City, region, or ZIP (e.g. Austin, TX)"
+            value={location}
+            onChange={(e) => updateLocation(e.target.value)}
+            required
+            autoComplete="address-level2"
+            className="text-base"
+            disabled={loading}
+          />
+          {exampleMarkets?.length ? (
+            <div className="mt-2 flex flex-wrap gap-2">
+              <span className="w-full text-xs text-slate-500">Try:</span>
+              {exampleMarkets.map((chip) => (
+                <button
+                  key={chip.label}
+                  type="button"
+                  disabled={loading}
+                  className={cn(
+                    "rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-700 transition-colors hover:border-slate-300 hover:bg-white disabled:opacity-50"
+                  )}
+                  onClick={() => updateLocation(chip.location)}
+                >
+                  {chip.label}
+                </button>
+              ))}
+            </div>
+          ) : null}
+        </div>
+      )}
+
+      {variant === "territory" ? (
+        <button type="submit" className="ds-submit" disabled={loading}>
+          {loading ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+              {SITE.searchSubmitLoading}
+            </>
+          ) : (
+            submitLabel
+          )}
+        </button>
+      ) : (
+        <Button className="w-full" size="lg" type="submit" disabled={loading}>
+          {loading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              {SITE.searchSubmitLoading}
+            </>
+          ) : (
+            submitLabel
+          )}
+        </Button>
+      )}
+
+      {loading ? (
+        <p className={variant === "territory" ? "ds-form-hint" : "text-center text-xs leading-relaxed text-slate-500"}>
+          {showLongWaitHint ? SITE.searchSubmitWaitHint : "This step can take up to a minute on a full pack."}
+        </p>
+      ) : null}
+      {error ? <p className={variant === "territory" ? "ds-form-error" : "text-sm text-red-600"}>{error}</p> : null}
+    </form>
+  );
+
+  if (variant === "territory") {
+    return formBody;
   }
 
   return (
@@ -88,63 +225,7 @@ export function SearchForm({
         <CardTitle>{cardTitle}</CardTitle>
         <CardDescription>{cardDescription}</CardDescription>
       </CardHeader>
-      <CardContent>
-        <form className="space-y-4" onSubmit={onSubmit}>
-          {hideNicheField ? (
-            <input type="hidden" name="niche" value={niche} readOnly />
-          ) : (
-            <Input
-              placeholder="Niche (e.g. dentists)"
-              value={niche}
-              onChange={(e) => setNiche(e.target.value)}
-              required
-            />
-          )}
-          <div>
-            <Input
-              placeholder="City, region, or ZIP (e.g. Austin, TX)"
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              required
-              autoComplete="address-level2"
-              className="text-base"
-            />
-            {exampleMarkets?.length ? (
-              <div className="mt-2 flex flex-wrap gap-2">
-                <span className="w-full text-xs text-slate-500">Try:</span>
-                {exampleMarkets.map((chip) => (
-                  <button
-                    key={chip.label}
-                    type="button"
-                    className={cn(
-                      "rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-700 transition-colors hover:border-slate-300 hover:bg-white"
-                    )}
-                    onClick={() => setLocation(chip.location)}
-                  >
-                    {chip.label}
-                  </button>
-                ))}
-              </div>
-            ) : null}
-          </div>
-          <Button className="w-full" size="lg" type="submit" disabled={loading}>
-            {loading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                {SITE.searchSubmitLoading}
-              </>
-            ) : (
-              submitLabel
-            )}
-          </Button>
-          {loading ? (
-            <p className="text-center text-xs leading-relaxed text-slate-500">
-              {showLongWaitHint ? SITE.searchSubmitWaitHint : "This step can take up to a minute on a full pack."}
-            </p>
-          ) : null}
-          {error ? <p className="text-sm text-red-600">{error}</p> : null}
-        </form>
-      </CardContent>
+      <CardContent>{formBody}</CardContent>
     </Card>
   );
 }

@@ -29,6 +29,7 @@ function parseEmailSource(value: unknown): Lead["emailSource"] {
     "footer",
     "about_page",
     "manual",
+    "inferred",
     "unknown",
   ];
   return allowed.includes(s as NonNullable<Lead["emailSource"]>) ? (s as Lead["emailSource"]) : null;
@@ -170,6 +171,9 @@ export async function ensureSchema() {
     await client.query(`ALTER TABLE leads ADD COLUMN IF NOT EXISTS email_source TEXT;`);
     await client.query(`ALTER TABLE leads ADD COLUMN IF NOT EXISTS enrichment_notes TEXT;`);
     await client.query(`ALTER TABLE leads ADD COLUMN IF NOT EXISTS email_rejection_reason TEXT;`);
+    await client.query(
+      `ALTER TABLE payments ADD COLUMN IF NOT EXISTS enrichment_status TEXT;`
+    );
 
     await client.query(`ALTER TABLE searches ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'pending';`);
     await client.query(`ALTER TABLE searches ADD COLUMN IF NOT EXISTS result_count INTEGER DEFAULT 0;`);
@@ -563,7 +567,7 @@ export async function getSearchForExport(searchId: number): Promise<{
 
     const leadsRes = await client.query(
       `SELECT
-         name, address, website, phone, email, primary_email, contact_form_url, email_status, email_source, enrichment_notes, email_rejection_reason, rating, review_count, score, reason, outreach, priority, opportunity_type, primary_type, maps_url, created_at
+         name, address, website, phone, email, primary_email, contact_form_url, email_status, email_source, enrichment_notes, email_rejection_reason, rating, review_count, score, reason, outreach, priority, opportunity_type, primary_type, maps_url, metadata, created_at
        FROM leads
        WHERE search_id = $1
        ORDER BY score DESC NULLS LAST, created_at DESC`,
@@ -573,6 +577,12 @@ export async function getSearchForExport(searchId: number): Promise<{
     const rows: ExportLeadRow[] = leadsRes.rows.map((r: any) => {
       const primary = (r.primary_email ?? r.email) ?? null;
       const es = parseEmailStatus(r.email_status);
+      const intel = (r.metadata?.intelligence ?? {}) as {
+        otherEmails?: string;
+        whyNow?: string;
+        clusterNotes?: string;
+        apolloEnrichment?: string;
+      };
       const signalLead = {
         primaryEmail: primary,
         contactFormUrl: r.contact_form_url ?? null,
@@ -585,11 +595,15 @@ export async function getSearchForExport(searchId: number): Promise<{
         website: r.website ?? null,
         phone: r.phone ?? null,
         primary_email: primary,
+        other_emails: intel.otherEmails ?? null,
         contact_form_url: r.contact_form_url ?? null,
         email_status: r.email_status ?? null,
         email_source: r.email_source ?? null,
         enrichment_notes: r.enrichment_notes ?? null,
         email_rejection_reason: (r.email_rejection_reason as string | null) ?? null,
+        why_now: intel.whyNow ?? null,
+        cluster_notes: intel.clusterNotes ?? null,
+        apollo_enrichment: intel.apolloEnrichment ?? null,
         contactable: isLeadContactable(signalLead),
         outreach_readiness: outreachReadinessFromContactSignals(signalLead),
         rating: r.rating !== null && r.rating !== undefined ? Number(r.rating) : null,
@@ -772,4 +786,41 @@ export async function markSearchPaidFromStripe(params: {
     }
   }
   throw new Error("Failed to mark search paid after retries.");
+}
+
+export type EnrichmentJobStatus = "pending" | "done" | "failed";
+
+/** Claim background enrichment once per Stripe checkout (idempotent). */
+export async function tryClaimBackgroundEnrichment(stripeSessionId: string): Promise<boolean> {
+  await ensureSchema();
+  const client = await getPool().connect();
+  try {
+    const res = await client.query(
+      `UPDATE payments
+       SET enrichment_status = 'pending'
+       WHERE stripe_session_id = $1
+         AND (enrichment_status IS NULL OR enrichment_status = '')
+       RETURNING id`,
+      [stripeSessionId]
+    );
+    return (res.rowCount ?? 0) > 0;
+  } finally {
+    safeReleaseClient(client);
+  }
+}
+
+export async function setBackgroundEnrichmentStatus(
+  stripeSessionId: string,
+  status: EnrichmentJobStatus
+): Promise<void> {
+  await ensureSchema();
+  const client = await getPool().connect();
+  try {
+    await client.query(`UPDATE payments SET enrichment_status = $1 WHERE stripe_session_id = $2`, [
+      status,
+      stripeSessionId,
+    ]);
+  } finally {
+    safeReleaseClient(client);
+  }
 }

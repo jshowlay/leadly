@@ -16,6 +16,9 @@
 # production
 /build
 
+# local lead CSV exports (not for repo)
+dentily-*-dental-leads*.csv
+
 # misc
 .DS_Store
 *.pem

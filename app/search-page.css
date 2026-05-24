@@ -1,0 +1,502 @@
+/* Dentily /search page — matches homepage design tokens */
+
+.dentily-search {
+  --color-bg: #f7f5f0;
+  --color-surface: #ffffff;
+  --color-ink: #1a1a18;
+  --color-muted: #5a5a55;
+  --color-hint: #888880;
+  --color-green: #2e7d52;
+  --color-green-bg: #e8f5ee;
+  --color-amber: #9a6200;
+  --color-amber-bg: #fff6e5;
+  --color-border: rgba(0, 0, 0, 0.1);
+
+  background: var(--color-bg);
+  color: var(--color-ink);
+  font-family: "DM Sans", system-ui, sans-serif;
+  min-height: 100vh;
+}
+
+.dentily-search h1,
+.dentily-search h2,
+.dentily-search .ds-serif {
+  font-family: "Instrument Serif", Georgia, serif;
+  font-weight: 400;
+}
+
+.dentily-search em {
+  font-style: italic;
+  color: var(--color-green);
+}
+
+.dentily-search .ds-layout {
+  display: grid;
+  grid-template-columns: 380px 1fr;
+  min-height: calc(100vh - 64px);
+}
+
+.dentily-search .ds-panel-left {
+  background: var(--color-surface);
+  border-right: 0.5px solid var(--color-border);
+  padding: 40px 36px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.dentily-search .ds-panel-right {
+  background: var(--color-bg);
+  padding: 40px 36px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  min-width: 0;
+}
+
+.dentily-search .ds-heading h1 {
+  font-size: 28px;
+  line-height: 1.2;
+  letter-spacing: -0.3px;
+  margin: 0;
+}
+
+.dentily-search .ds-heading p {
+  margin: 10px 0 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--color-muted);
+}
+
+.dentily-search .ds-field-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-ink);
+  margin-bottom: 8px;
+}
+
+.dentily-search .ds-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--color-bg);
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 9px;
+  padding: 0 14px;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.dentily-search .ds-input-wrap:focus-within {
+  border-color: var(--color-ink);
+  background: #fff;
+}
+
+.dentily-search .ds-input-wrap input {
+  flex: 1;
+  font-family: "DM Sans", system-ui, sans-serif;
+  font-size: 14px;
+  padding: 12px 0;
+  border: none;
+  background: transparent;
+  color: var(--color-ink);
+  outline: none;
+  min-width: 0;
+}
+
+.dentily-search .ds-input-wrap input::placeholder {
+  color: var(--color-hint);
+}
+
+.dentily-search .ds-chips-label {
+  font-size: 11px;
+  color: var(--color-hint);
+  margin-bottom: 8px;
+  display: block;
+}
+
+.dentily-search .ds-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.dentily-search .ds-chip {
+  font-size: 12px;
+  font-weight: 500;
+  padding: 5px 13px;
+  border-radius: 20px;
+  border: 0.5px solid rgba(0, 0, 0, 0.15);
+  background: var(--color-bg);
+  color: var(--color-muted);
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.dentily-search .ds-chip:hover:not(:disabled) {
+  border-color: var(--color-ink);
+  color: var(--color-ink);
+}
+
+.dentily-search .ds-chip:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.dentily-search .ds-submit {
+  width: 100%;
+  background: var(--color-ink);
+  color: var(--color-bg);
+  font-family: "DM Sans", system-ui, sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  padding: 14px;
+  border-radius: 9px;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: opacity 0.15s;
+}
+
+.dentily-search .ds-submit:hover:not(:disabled) {
+  opacity: 0.92;
+}
+
+.dentily-search .ds-submit:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.dentily-search .ds-included-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-hint);
+  margin: 0 0 12px;
+}
+
+.dentily-search .ds-included-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.dentily-search .ds-included-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--color-ink);
+}
+
+.dentily-search .ds-check {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--color-green-bg);
+  color: var(--color-green);
+  font-size: 10px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1px;
+}
+
+.dentily-search .ds-disclaimer {
+  font-size: 11px;
+  color: #aaa;
+  line-height: 1.5;
+  border-top: 0.5px solid var(--color-border);
+  padding-top: 16px;
+  margin-top: auto;
+}
+
+.dentily-search .ds-form-hint {
+  font-size: 12px;
+  color: var(--color-hint);
+  text-align: center;
+  line-height: 1.45;
+  margin: 0;
+}
+
+.dentily-search .ds-form-error {
+  font-size: 13px;
+  color: #b42318;
+  margin: 0;
+}
+
+.dentily-search .ds-preview-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.dentily-search .ds-preview-header h2 {
+  font-size: 20px;
+  margin: 0;
+  line-height: 1.25;
+}
+
+.dentily-search .ds-preview-tag {
+  font-size: 12px;
+  color: var(--color-hint);
+}
+
+.dentily-search .ds-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.dentily-search .ds-stat-card {
+  flex: 1 1 0;
+  min-width: 120px;
+  background: #fff;
+  border: 0.5px solid var(--color-border);
+  border-radius: 10px;
+  padding: 14px 18px;
+}
+
+.dentily-search .ds-stat-value {
+  font-family: "Instrument Serif", Georgia, serif;
+  font-size: 26px;
+  line-height: 1;
+  color: var(--color-ink);
+}
+
+.dentily-search .ds-stat-label {
+  margin-top: 6px;
+  font-size: 11px;
+  color: var(--color-hint);
+}
+
+.dentily-search .ds-table-wrap {
+  background: #fff;
+  border: 0.5px solid var(--color-border);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.dentily-search .ds-table-scroll {
+  overflow-x: auto;
+}
+
+.dentily-search .ds-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: "DM Sans", system-ui, sans-serif;
+}
+
+.dentily-search .ds-table thead tr {
+  background: var(--color-bg);
+  border-bottom: 0.5px solid var(--color-border);
+}
+
+.dentily-search .ds-table thead th {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-hint);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 11px 16px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.dentily-search .ds-table tbody tr {
+  border-bottom: 0.5px solid rgba(0, 0, 0, 0.07);
+}
+
+.dentily-search .ds-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.dentily-search .ds-table tbody tr:hover {
+  background: #fafaf8;
+}
+
+.dentily-search .ds-table tbody td {
+  padding: 14px 16px;
+  vertical-align: middle;
+}
+
+.dentily-search .ds-practice-name {
+  font-weight: 500;
+  font-size: 13px;
+  color: var(--color-ink);
+}
+
+.dentily-search .ds-practice-city {
+  font-size: 11px;
+  color: var(--color-hint);
+  margin-top: 2px;
+}
+
+.dentily-search .ds-score-badge {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Instrument Serif", Georgia, serif;
+  font-size: 16px;
+  line-height: 1;
+}
+
+.dentily-search .ds-score-badge.is-high {
+  background: var(--color-ink);
+  color: var(--color-bg);
+}
+
+.dentily-search .ds-score-badge.is-low {
+  background: var(--color-bg);
+  color: var(--color-ink);
+  border: 0.5px solid rgba(0, 0, 0, 0.15);
+}
+
+.dentily-search .ds-priority {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+
+.dentily-search .ds-priority-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.dentily-search .ds-priority.is-high {
+  background: var(--color-green-bg);
+  color: var(--color-green);
+  border: 0.5px solid #b5dcc6;
+}
+
+.dentily-search .ds-priority.is-high .ds-priority-dot {
+  background: var(--color-green);
+}
+
+.dentily-search .ds-priority.is-medium {
+  background: var(--color-amber-bg);
+  color: var(--color-amber);
+  border: 0.5px solid #f0d08a;
+}
+
+.dentily-search .ds-priority.is-medium .ds-priority-dot {
+  background: var(--color-amber);
+}
+
+.dentily-search .ds-signal {
+  font-size: 12px;
+  color: var(--color-muted);
+  max-width: 220px;
+  line-height: 1.4;
+}
+
+.dentily-search .ds-contact {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-green);
+  white-space: nowrap;
+}
+
+.dentily-search .sp-row-locked td {
+  filter: blur(3.5px);
+  user-select: none;
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+.dentily-search .ds-unlock {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background: var(--color-bg);
+  border-top: 0.5px solid var(--color-border);
+  padding: 20px 24px;
+}
+
+.dentily-search .ds-unlock p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--color-muted);
+  line-height: 1.5;
+  flex: 1 1 240px;
+}
+
+.dentily-search .ds-unlock strong {
+  color: var(--color-ink);
+  font-weight: 600;
+}
+
+.dentily-search .ds-unlock-btn {
+  flex-shrink: 0;
+  background: var(--color-ink);
+  color: var(--color-bg);
+  font-family: "DM Sans", system-ui, sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 10px 20px;
+  border-radius: 7px;
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.dentily-search .ds-unlock-btn:hover:not(:disabled) {
+  opacity: 0.92;
+}
+
+.dentily-search .ds-unlock-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .dentily-search .ds-layout {
+    grid-template-columns: 1fr;
+    min-height: 0;
+  }
+
+  .dentily-search .ds-panel-left {
+    border-right: none;
+    border-bottom: 0.5px solid var(--color-border);
+    padding: 32px 20px;
+  }
+
+  .dentily-search .ds-panel-right {
+    padding: 32px 20px;
+  }
+
+  .dentily-search .ds-stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .dentily-search .ds-stat-card {
+    min-width: 0;
+  }
+
+  .dentily-search .ds-table tbody tr.sp-row-locked:last-child {
+    display: none;
+  }
+}

@@ -14,7 +14,7 @@ const NAV_LINKS = [
   { label: "Pricing", href: "/pricing" },
 ] as const;
 
-export function SiteHeader() {
+export function SiteHeader({ homeStyle = false }: { homeStyle?: boolean }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -28,8 +28,13 @@ export function SiteHeader() {
   return (
     <header
       className={cn(
-        "sticky top-0 z-50 w-full border-b border-slate-200 bg-white/95 backdrop-blur transition-shadow",
-        scrolled ? "shadow-sm" : "shadow-none"
+        "sticky top-0 z-50 w-full backdrop-blur transition-shadow",
+        homeStyle
+          ? cn("dh-header border-b border-[rgba(0,0,0,0.1)]", scrolled && "is-scrolled")
+          : cn(
+              "border-b border-slate-200 bg-white/95",
+              scrolled ? "shadow-sm" : "shadow-none"
+            )
       )}
     >
       <div className="landing-max h-16">
@@ -54,8 +59,12 @@ export function SiteHeader() {
             <HashSafeLink
               href="/search#sample-preview"
               className={cn(
-                buttonVariants({ variant: "default", size: "default" }),
-                "h-10 whitespace-nowrap bg-slate-900 px-4 text-xs text-white hover:bg-slate-800 sm:text-sm"
+                homeStyle
+                  ? "dh-btn-primary inline-flex h-10 items-center whitespace-nowrap px-4 text-xs sm:text-sm"
+                  : cn(
+                      buttonVariants({ variant: "default", size: "default" }),
+                      "h-10 whitespace-nowrap bg-slate-900 px-4 text-xs text-white hover:bg-slate-800 sm:text-sm"
+                    )
               )}
             >
               View Sample Leads

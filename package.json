@@ -40,13 +40,18 @@
     "lint": "next lint",
     "test": "vitest run",
     "generate-sample-pack": "GENERATE_SAMPLE_PACK=1 vitest run lib/sample-pack.test.ts",
-    "generate-sample-austin-dl": "WRITE_DENTILY_SAMPLE_AUSTIN_CSV=1 vitest run lib/dentily-sample-austin-csv.build.test.ts"
+    "generate-sample-austin-dl": "WRITE_DENTILY_SAMPLE_AUSTIN_CSV=1 vitest run lib/dentily-sample-austin-csv.build.test.ts",
+    "fill-csv-gaps": "node scripts/fill-csv-gaps.mjs"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.98.0",
+    "@vercel/functions": "^3.6.0",
     "autoprefixer": "^10.4.27",
     "cheerio": "^1.2.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "csv-parse": "^6.2.1",
+    "csv-stringify": "^6.7.0",
     "lucide-react": "^1.7.0",
     "next": "14.2.35",
     "next-auth": "^5.0.0-beta.25",
@@ -55,6 +60,7 @@
     "postcss": "^8",
     "react": "^18",
     "react-dom": "^18",
+    "resend": "^6.12.3",
     "stripe": "^17.7.0",
     "styled-jsx": "^5.1.7",
     "tailwind-merge": "^3.5.0",

@@ -32,7 +32,7 @@ const LIVE_SAMPLE_LEADS: LeadPreview[] = [
     ],
     contact: "Contact Form",
     outreachSnippet:
-      "{{your_name}} here, from {{your_company}}. {{your_credibility_line}} — Google shows 4.2 stars with 469 reviews. In Miami that number is often the first cut when someone compares practices.",
+      "Hey Dr. Patel — Sarah here, from Growth Dental Co. We help practices climb past the 4.5-star threshold on Google. You're sitting at 4.2 stars with 469 reviews in Miami, which is often the first cut when someone compares practices nearby.",
   },
   {
     name: "Ultra Smile DentaSpa",
@@ -49,7 +49,7 @@ const LIVE_SAMPLE_LEADS: LeadPreview[] = [
     ],
     contact: "Email",
     outreachSnippet:
-      "{{your_name}} here, from {{your_company}}. {{your_credibility_line}} — 4.8 stars, 739 reviews. Strong profile. What's the growth lever you haven't tried yet?",
+      "Hey Dr. Kim — Marcus here, from Apex Dental Marketing. Strong profile — 4.8 stars and 739 reviews. Most practices at your level are leaving 30–40% of new patients on the table without a paid acquisition channel.",
   },
   {
     name: "My Dentist in Miami",
@@ -66,7 +66,7 @@ const LIVE_SAMPLE_LEADS: LeadPreview[] = [
     ],
     contact: "Email",
     outreachSnippet:
-      "{{your_name}} here, from {{your_company}}. {{your_credibility_line}} — only 73 reviews so far. Early-stage practices win or lose on whether Google shows enough recent detail.",
+      "Hey Dr. Chen — Jamie here, from Local Practice Growth. Only 73 reviews so far — early-stage practices that move fast on visibility typically double their new patient flow within 90 days.",
   },
 ];
 
