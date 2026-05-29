@@ -15,6 +15,7 @@ export type EmailSource =
   | "about_page"
   | "manual"
   | "inferred"
+  | "hunter"
   | "unknown"
   | null;
 

@@ -8,7 +8,7 @@ import { getExistingPracticeIdsForUser } from "@/lib/subscription-db";
 import type { NicheConfig } from "@/lib/types";
 import { EMPTY_LEAD_ENRICHMENT, type Lead } from "@/lib/types";
 
-export const TARGET_LEAD_COUNT = 50;
+export const TARGET_LEAD_COUNT = 150;
 
 function normalizeText(value: string | null | undefined): string {
   return (value ?? "").trim().toLowerCase();

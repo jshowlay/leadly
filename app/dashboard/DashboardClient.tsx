@@ -170,7 +170,7 @@ export function DashboardClient({ user, subscription, searches: initialSearches 
               <div>
                 <p className="font-semibold text-amber-950">Unlock your first lead pack</p>
                 <p className="mt-1 text-sm text-amber-900/80">
-                  $49 one-time — 50 scored practices per market with outreach drafts and CSV export.
+                  $99 one-time — 150 scored practices per market with outreach drafts and CSV export.
                 </p>
               </div>
               <div className="flex flex-wrap gap-2">
@@ -182,7 +182,7 @@ export function DashboardClient({ user, subscription, searches: initialSearches 
                   {checkoutLoading === "starter" ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
-                    "Get leads — $49"
+                    "Get leads — $99"
                   )}
                 </Button>
                 <Link href="/search" className={cn(buttonVariants({ variant: "outline" }), "inline-flex items-center")}>

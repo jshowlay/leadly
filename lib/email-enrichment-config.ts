@@ -44,6 +44,33 @@ export function isEmailEnrichmentDisabled(): boolean {
   return v === "1" || v === "true" || v === "yes";
 }
 
+export type HunterFallbackConfig = {
+  /** True only when a key is present and the provider is not disabled. */
+  enabled: boolean;
+  /** Hard cap on Hunter lookups per search (protects the monthly quota). */
+  maxLookupsPerSearch: number;
+  /** Delay between sequential Hunter calls (rate limiting). */
+  delayMs: number;
+};
+
+function isHunterDisabled(): boolean {
+  const v = process.env.DENTILY_DISABLE_HUNTER?.trim().toLowerCase();
+  return v === "1" || v === "true" || v === "yes";
+}
+
+/**
+ * Hunter.io fallback tuning. Defaults are conservative because the free tier is
+ * only 25 lookups/month. Raise DENTILY_HUNTER_MAX_LOOKUPS on a paid plan.
+ */
+export function loadHunterFallbackConfig(): HunterFallbackConfig {
+  const hasKey = Boolean(process.env.HUNTER_API_KEY?.trim());
+  return {
+    enabled: hasKey && !isHunterDisabled(),
+    maxLookupsPerSearch: parseIntEnv("DENTILY_HUNTER_MAX_LOOKUPS", 25),
+    delayMs: parseIntEnvNonNeg("DENTILY_HUNTER_DELAY_MS", 200),
+  };
+}
+
 export function loadEmailEnrichmentConfig(): EmailEnrichmentRuntimeConfig {
   return {
     requestTimeoutMs: parseIntEnv("DENTILY_ENRICH_TIMEOUT_MS", DEFAULTS.requestTimeoutMs),

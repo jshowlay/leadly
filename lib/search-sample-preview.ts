@@ -64,14 +64,14 @@ export const SEARCH_PREVIEW_LOCKED_ROWS: SearchPreviewRow[] = [
 ];
 
 export const SEARCH_PREVIEW_STATS = {
-  total: 50,
-  highPriority: 31,
+  total: 150,
+  highPriority: 93,
   opportunityTypes: 3,
-  price: "$49",
+  price: "$99",
 } as const;
 
 export const WHATS_INCLUDED = [
-  "Up to 50 scored practice records",
+  "Up to 150 scored practice records",
   "Priority tier + numeric score per lead",
   "Best contact path (email, form, or phone)",
   "Estimated monthly opportunity range",

@@ -97,7 +97,7 @@ export function LandingHeroRedesign({
 
           <div className="dh-float-badge dh-float-badge--leads">
             <Check size={14} strokeWidth={2.5} aria-hidden />
-            50 scored leads ready
+            150 scored leads ready
           </div>
           <div className="dh-float-badge dh-float-badge--outreach">
             <Zap size={14} fill="currentColor" aria-hidden />

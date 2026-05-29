@@ -35,10 +35,9 @@ export async function POST(request: Request) {
             currency: "usd",
             product_data: {
               name: SITE.leadPackName,
-              description:
-                "50 scored local dental practices with priorities, rationale, and outreach drafts for B2B outreach (not consumer patient leads).",
+              description: `Up to ${SITE.leadPackCount} scored local dental practices with priorities, rationale, and outreach drafts for B2B outreach (not consumer patient leads).`,
             },
-            unit_amount: 4900,
+            unit_amount: 9900,
           },
           quantity: 1,
         },

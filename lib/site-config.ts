@@ -6,10 +6,10 @@ export const SITE = {
   /** Secondary — scroll to proof / sample on landing */
   secondaryCta: "View Sample Leads",
   /** After search, when user still needs to pay */
-  unlockCta: "Unlock opportunity pack ($49)",
+  unlockCta: "Unlock opportunity pack ($99)",
   leadPackName: "Dentily Practice Opportunity Pack",
-  leadPackPriceLabel: "$49",
-  leadPackCount: 50,
+  leadPackPriceLabel: "$99",
+  leadPackCount: 150,
   searchSubmitLoading: "Building your pack…",
   /** Shown under the submit button while the search API runs */
   searchSubmitWaitHint:

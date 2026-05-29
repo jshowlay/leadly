@@ -8,7 +8,7 @@ import "@/app/pricing-page.css";
 export const metadata: Metadata = {
   title: "Pricing",
   description:
-    "Get 50 scored dental practice leads for $49 one-time. Instant CSV download. Built for agencies and freelancers.",
+    "Get 150 scored dental practice leads for $99 one-time. Instant CSV download. Built for agencies and freelancers.",
 };
 
 export default function PricingPage() {
@@ -22,7 +22,7 @@ export default function PricingPage() {
           Simple pricing, <em>real results</em>
         </h1>
         <p className="dp-hero-sub">
-          One-time $49 per market — close one client and the pack pays for itself many times over.
+          One-time $99 per market — close one client and the pack pays for itself many times over.
         </p>
         <p className="dp-trust-pill">
           <span className="dp-trust-dot" aria-hidden />

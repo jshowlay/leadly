@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { DeferredEnrichment } from "@/components/deferred-enrichment";
 import { ResultsPageView } from "@/components/results/results-page-view";
 import { ServerDbError } from "@/components/server-db-error";
 import { sanitizeLeadsForClient } from "@/lib/client-leads";
@@ -83,21 +84,26 @@ export default async function ResultsPage({
         : null;
     const canExport = canExportLeadPack(parsed.status, parsed.leads.length);
     const highPriorityCount = parsed.leads.filter((l) => (l.priority ?? "").toLowerCase() === "high").length;
+    // Kick off the background website + Hunter enrichment pass while results are shown.
+    const hasPendingEnrichment = parsed.leads.some((l) => l.emailStatus === "pending");
 
     return (
-      <ResultsPageView
-        searchId={parsed.id}
-        nicheLabel={nicheLabel}
-        location={parsed.location}
-        status={parsed.status}
-        errorMessage={parsed.errorMessage}
-        recordCount={parsed.resultCount ?? parsed.leads.length}
-        highPriorityCount={highPriorityCount}
-        averageScore={averageScore}
-        canExport={canExport}
-        isPaid={parsed.isPaid}
-        leads={sanitizeLeadsForClient(parsed.leads)}
-      />
+      <>
+        {hasPendingEnrichment ? <DeferredEnrichment searchId={parsed.id} /> : null}
+        <ResultsPageView
+          searchId={parsed.id}
+          nicheLabel={nicheLabel}
+          location={parsed.location}
+          status={parsed.status}
+          errorMessage={parsed.errorMessage}
+          recordCount={parsed.resultCount ?? parsed.leads.length}
+          highPriorityCount={highPriorityCount}
+          averageScore={averageScore}
+          canExport={canExport}
+          isPaid={parsed.isPaid}
+          leads={sanitizeLeadsForClient(parsed.leads)}
+        />
+      </>
     );
   } catch (e) {
     console.error("[results] fatal", e);

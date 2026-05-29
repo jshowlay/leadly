@@ -1,7 +1,7 @@
 const FAQ_ITEMS: { q: string; a: string }[] = [
   {
     q: "What does a Dentily lead pack include?",
-    a: "Up to 50 scored dental practice records for the area you searched: name, location, Maps link, ratings and reviews where available, priority and score, a short “why this lead” rationale, estimated opportunity range, best contact path (email, contact form, or phone when we can determine it), and a ready-to-use outreach message starter. Built for B2B sales — not consumer patient data.",
+    a: "Up to 150 scored dental practice records for the area you searched: name, location, Maps link, ratings and reviews where available, priority and score, a short “why this lead” rationale, estimated opportunity range, best contact path (email, contact form, or phone when we can determine it), and a ready-to-use outreach message starter. Built for B2B sales — not consumer patient data.",
   },
   {
     q: "Who is Dentily for?",
@@ -33,7 +33,7 @@ const FAQ_ITEMS: { q: string; a: string }[] = [
   },
   {
     q: "What counts as a credit?",
-    a: "One search in any city equals one credit. Each search returns up to 50 scored leads.",
+    a: "One search in any city equals one credit. Each search returns up to 150 scored leads.",
   },
   {
     q: "Do I get the same leads twice?",

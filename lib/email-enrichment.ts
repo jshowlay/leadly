@@ -10,7 +10,9 @@ import {
   type EmailEnrichmentRuntimeConfig,
   isEmailEnrichmentDisabled,
   loadEmailEnrichmentConfig,
+  loadHunterFallbackConfig,
 } from "@/lib/email-enrichment-config";
+import { enrichEmailFromDomain } from "@/lib/enrichment/hunter";
 import {
   collectLikelyContactPageUrls,
   mergePageEmails,
@@ -371,5 +373,68 @@ export async function batchEnrichLeads(leads: Lead[], runtime?: Partial<EmailEnr
       await sleep(config.politeDelayMs);
     }
   }
-  return out;
+  return runHunterFallback(out);
+}
+
+/**
+ * Second pass: for leads the website crawl could not resolve to an email but that
+ * have a website, query Hunter.io Domain Search. Runs sequentially with a delay
+ * and a hard per-search cap to respect Hunter's quota/rate limits.
+ */
+async function runHunterFallback(leads: Lead[]): Promise<Lead[]> {
+  const hunter = loadHunterFallbackConfig();
+  if (!hunter.enabled) return leads;
+
+  const candidates = leads.filter(
+    (l) => !(l.primaryEmail ?? "").trim() && (l.website ?? "").trim()
+  );
+  if (candidates.length === 0) return leads;
+
+  const targets = new Set(candidates.slice(0, hunter.maxLookupsPerSearch).map((l) => l.placeId));
+  console.log(
+    `[hunter] fallback candidates=${candidates.length} attempting=${targets.size} cap=${hunter.maxLookupsPerSearch}`
+  );
+
+  const patched = new Map<string, Lead>();
+  let found = 0;
+  let first = true;
+  for (const lead of leads) {
+    if (!targets.has(lead.placeId)) continue;
+    if (!first) await sleep(hunter.delayMs);
+    first = false;
+
+    try {
+      const result = await enrichEmailFromDomain(lead.website as string);
+      if (result.email) {
+        found += 1;
+        const confidenceNote =
+          result.confidence !== null ? ` (confidence ${result.confidence})` : "";
+        patched.set(lead.placeId, {
+          ...lead,
+          primaryEmail: result.email,
+          emailStatus: "found",
+          emailSource: "hunter",
+          enrichmentNotes: `Found via Hunter.io domain search${confidenceNote}`,
+          emailRejectionReason: null,
+        });
+        logEnrichmentLine({
+          placeId: lead.placeId,
+          name: lead.name,
+          website: lead.website,
+          status: "found",
+          primaryEmail: result.email,
+          contactFormUrl: lead.contactFormUrl,
+        });
+      }
+    } catch (e) {
+      console.error("[hunter] fallback lead failed", {
+        placeId: lead.placeId,
+        error: e instanceof Error ? e.message : String(e),
+      });
+    }
+  }
+
+  console.log(`[hunter] fallback found=${found}/${targets.size}`);
+  if (patched.size === 0) return leads;
+  return leads.map((l) => patched.get(l.placeId) ?? l);
 }

@@ -12,7 +12,7 @@ const STEPS = [
           <span className="dh-faux-search-dot" />
           Austin, TX — dental practices
         </div>
-        <p className="dh-faux-hint">↓ 50 practices found · scoring now</p>
+        <p className="dh-faux-hint">↓ 150 practices found · scoring now</p>
       </>
     ),
   },

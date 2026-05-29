@@ -17,10 +17,24 @@ const googlePlaceSearchResponseSchema = z.object({
       userRatingCount: z.number().optional().nullable(),
       primaryType: z.string().optional().nullable(),
       googleMapsUri: z.string().optional().nullable(),
+      addressComponents: z
+        .array(
+          z.object({
+            longText: z.string().optional().nullable(),
+            shortText: z.string().optional().nullable(),
+            types: z.array(z.string()).optional().nullable(),
+          })
+        )
+        .optional()
+        .nullable(),
     })
   ).optional(),
   nextPageToken: z.string().optional().nullable(),
 });
+
+type GooglePlace = NonNullable<
+  z.infer<typeof googlePlaceSearchResponseSchema>["places"]
+>[number];
 
 const googlePlaceDetailsResponseSchema = googlePlaceSearchResponseSchema;
 
@@ -38,9 +52,16 @@ export type NormalizedPlaceLead = Pick<
   | "metadata"
 >;
 
-const MAX_PAGES = 3;
-const DEFAULT_TARGET_COUNT = 50;
+/** Google allows up to 3 pages (≈60 places) per text search query. */
+const MAX_PAGES_PER_QUERY = 3;
+const DEFAULT_TARGET_COUNT = 150;
 const PAGE_SIZE = 20;
+/** nextPageToken is invalid until this delay elapses (Places API requirement). */
+const PAGE_TOKEN_DELAY_MS = 2000;
+
+const SEARCH_TEXT_URL = "https://places.googleapis.com/v1/places:searchText";
+const SEARCH_TEXT_FIELD_MASK =
+  "nextPageToken,places.id,places.displayName,places.formattedAddress,places.websiteUri,places.nationalPhoneNumber,places.rating,places.userRatingCount,places.primaryType,places.googleMapsUri,places.addressComponents";
 
 function cleanString(value: unknown): string | null {
   if (typeof value !== "string") return null;
@@ -121,32 +142,221 @@ async function googlePlacesFetchJson<T>(url: string, init: RequestInit): Promise
   return (await res.json()) as T;
 }
 
-export async function searchBusinesses(
-  query: string,
-  targetCount = DEFAULT_TARGET_COUNT
-): Promise<NormalizedPlaceLead[]> {
-  const apiKey = process.env.GOOGLE_MAPS_API_KEY;
-  if (!apiKey) {
-    throw new Error("Missing GOOGLE_MAPS_API_KEY.");
+function extractLocationFromQuery(query: string): string | null {
+  const idx = query.toLowerCase().lastIndexOf(" in ");
+  if (idx === -1) return null;
+  const location = query.slice(idx + 4).trim();
+  return location.length > 0 ? location : null;
+}
+
+function isDentalRelatedQuery(query: string): boolean {
+  return /dent|dental|orthodont|oral/i.test(query);
+}
+
+function buildDentalSearchQueries(location: string, primaryQuery: string): string[] {
+  const loc = location.trim();
+  const variants = [
+    primaryQuery,
+    `dental practices in ${loc}`,
+    `dentist office in ${loc}`,
+    `family dentistry in ${loc}`,
+    `cosmetic dentist in ${loc}`,
+    `orthodontist in ${loc}`,
+  ];
+  return Array.from(new Set(variants.map((q) => q.trim()).filter(Boolean)));
+}
+
+/** Full US state names → USPS abbreviations (for geo-validation fallback). */
+const US_STATE_ABBR: Record<string, string> = {
+  alabama: "al", alaska: "ak", arizona: "az", arkansas: "ar", california: "ca",
+  colorado: "co", connecticut: "ct", delaware: "de", florida: "fl", georgia: "ga",
+  hawaii: "hi", idaho: "id", illinois: "il", indiana: "in", iowa: "ia",
+  kansas: "ks", kentucky: "ky", louisiana: "la", maine: "me", maryland: "md",
+  massachusetts: "ma", michigan: "mi", minnesota: "mn", mississippi: "ms",
+  missouri: "mo", montana: "mt", nebraska: "ne", nevada: "nv",
+  "new hampshire": "nh", "new jersey": "nj", "new mexico": "nm", "new york": "ny",
+  "north carolina": "nc", "north dakota": "nd", ohio: "oh", oklahoma: "ok",
+  oregon: "or", pennsylvania: "pa", "rhode island": "ri", "south carolina": "sc",
+  "south dakota": "sd", tennessee: "tn", texas: "tx", utah: "ut", vermont: "vt",
+  virginia: "va", washington: "wa", "west virginia": "wv", wisconsin: "wi",
+  wyoming: "wy", "district of columbia": "dc",
+};
+
+export function parseCityState(input: string): { city: string; state: string } {
+  const parts = input.split(",").map((s) => s.trim());
+  return {
+    city: parts[0] || input.trim(),
+    state: parts[1] || "",
+  };
+}
+
+/** Normalize a state token to its 2-letter form when recognizable. */
+function normalizeState(state: string): { full: string; abbr: string } {
+  const s = state.toLowerCase().trim();
+  if (!s) return { full: "", abbr: "" };
+  if (s.length === 2) {
+    const full = Object.keys(US_STATE_ABBR).find((k) => US_STATE_ABBR[k] === s) ?? "";
+    return { full, abbr: s };
+  }
+  return { full: s, abbr: US_STATE_ABBR[s] ?? s.slice(0, 2) };
+}
+
+const CITY_COMPONENT_TYPES = [
+  "locality",
+  "postal_town",
+  "sublocality",
+  "sublocality_level_1",
+  "administrative_area_level_3",
+  "administrative_area_level_2",
+  "neighborhood",
+];
+
+/** Extract a place's 2-letter state from addressComponents, else formatted address. */
+function placeStateAbbr(place: GooglePlace): string | null {
+  const components = place.addressComponents ?? [];
+  for (const c of components) {
+    if ((c.types ?? []).includes("administrative_area_level_1")) {
+      const short = (c.shortText ?? "").toLowerCase();
+      if (short.length === 2) return short;
+      const long = (c.longText ?? "").toLowerCase();
+      if (US_STATE_ABBR[long]) return US_STATE_ABBR[long];
+    }
+  }
+  // Fallback: ", TX " or ", TX," in the formatted address.
+  const m = (place.formattedAddress ?? "").toLowerCase().match(/,\s*([a-z]{2})(?:\s+\d{5}|,|\s|$)/);
+  return m?.[1] ?? null;
+}
+
+/**
+ * Validate a Places (New) result belongs to the intended city AND state together.
+ *
+ * State is required and matched strictly (fixes same-named cities in other states,
+ * e.g. Dallas GA/OR vs Dallas TX). The formatted-address fallback requires the
+ * "city, state" pair to appear as a contiguous unit so a stray state token elsewhere
+ * in the string (suite numbers, tracking URLs) cannot satisfy the check.
+ */
+export function isInTargetCity(place: GooglePlace, targetCity: string, targetState: string): boolean {
+  const city = targetCity.toLowerCase().trim();
+  const { full: stateFull, abbr: stateAbbr } = normalizeState(targetState);
+  if (!stateFull && !stateAbbr) return false;
+
+  const components = place.addressComponents ?? [];
+  const formatted = (place.formattedAddress ?? "").toLowerCase();
+
+  // --- Primary: address_components (most reliable) — require city AND state ---
+  if (components.length > 0) {
+    const stateMatch = components.some((c) => {
+      if (!(c.types ?? []).includes("administrative_area_level_1")) return false;
+      const long = (c.longText ?? "").toLowerCase();
+      const short = (c.shortText ?? "").toLowerCase();
+      return (
+        (stateFull && long === stateFull) ||
+        (stateAbbr && (short === stateAbbr || long === stateAbbr))
+      );
+    });
+    if (!stateMatch) return false;
+    if (!city) return true;
+
+    const cityMatch = components.some((c) => {
+      if (!(c.types ?? []).some((t) => CITY_COMPONENT_TYPES.includes(t))) return false;
+      return (c.longText ?? "").toLowerCase() === city;
+    });
+    // Some listings label the city only in the formatted address (no locality component);
+    // accept the contiguous "city, state" pair there as a backstop.
+    if (cityMatch) return true;
+    return (
+      formatted.includes(`${city}, ${stateAbbr}`) ||
+      (Boolean(stateFull) && formatted.includes(`${city}, ${stateFull}`))
+    );
   }
 
-  const fieldMask =
-    "nextPageToken,places.id,places.displayName,places.formattedAddress,places.websiteUri,places.nationalPhoneNumber,places.rating,places.userRatingCount,places.primaryType,places.googleMapsUri";
+  // --- Fallback: formatted address. Require "city, state" as a contiguous unit ---
+  if (!city) {
+    return Boolean(
+      (stateAbbr && (formatted.includes(`, ${stateAbbr} `) || formatted.includes(`, ${stateAbbr},`))) ||
+        (stateFull && formatted.includes(`, ${stateFull}`))
+    );
+  }
+  return (
+    formatted.includes(`${city}, ${stateAbbr}`) ||
+    (Boolean(stateFull) && formatted.includes(`${city}, ${stateFull}`))
+  );
+}
 
-  const url = "https://places.googleapis.com/v1/places:searchText";
-  const normalizedQuery = query.trim();
-  const cappedTarget = Math.max(1, Math.min(targetCount, DEFAULT_TARGET_COUNT));
+/**
+ * When the user omits a state (single free-text field), infer the intended state
+ * from the plurality of results — Google ranks the prominent same-named city first,
+ * so e.g. a bare "Dallas" resolves to TX and GA/OR listings are dropped.
+ */
+function inferDominantState(places: GooglePlace[], city: string): string | null {
+  const counts = new Map<string, number>();
+  for (const p of places) {
+    // Only count places whose city matches, so the tally reflects the searched city.
+    const formatted = (p.formattedAddress ?? "").toLowerCase();
+    const localityMatch = (p.addressComponents ?? []).some(
+      (c) =>
+        (c.types ?? []).some((t) => CITY_COMPONENT_TYPES.includes(t)) &&
+        (c.longText ?? "").toLowerCase() === city
+    );
+    if (city && !localityMatch && !formatted.includes(`${city},`)) continue;
+    const st = placeStateAbbr(p);
+    if (!st) continue;
+    counts.set(st, (counts.get(st) ?? 0) + 1);
+  }
+  let best: string | null = null;
+  let bestN = 0;
+  for (const [st, n] of Array.from(counts.entries())) {
+    if (n > bestN) {
+      best = st;
+      bestN = n;
+    }
+  }
+  return best;
+}
 
-  const allPlaces: unknown[] = [];
+function geoFilterPlaces(places: GooglePlace[], location: string): GooglePlace[] {
+  const { city } = parseCityState(location);
+  let { state } = parseCityState(location);
+
+  if (!state.trim()) {
+    const inferred = inferDominantState(places, city.toLowerCase().trim());
+    if (!inferred) {
+      console.log(`[google-places] geoFilter skipped (no state in "${location}", none inferable)`);
+      return places;
+    }
+    state = inferred;
+    console.log(`[google-places] geoFilter inferred state="${state}" for "${location}"`);
+  }
+
+  const kept = places.filter((p) => isInTargetCity(p, city, state));
+  console.log(
+    `[google-places] geoFilter city=${JSON.stringify(city)} state=${JSON.stringify(
+      state
+    )} before=${places.length} after=${kept.length}`
+  );
+  return kept;
+}
+
+/** Paginate one text query up to MAX_PAGES_PER_QUERY (≈60 raw places). */
+async function searchTextQueryAllPages(
+  textQuery: string,
+  apiKey: string,
+  queryLabel: string
+): Promise<GooglePlace[]> {
+  const allPlaces: GooglePlace[] = [];
   let nextPageToken: string | null = null;
 
-  for (let page = 1; page <= MAX_PAGES; page += 1) {
+  for (let page = 1; page <= MAX_PAGES_PER_QUERY; page += 1) {
+    if (page > 1) {
+      await new Promise((resolve) => setTimeout(resolve, PAGE_TOKEN_DELAY_MS));
+    }
+
     const requestBody: {
       textQuery: string;
       pageSize: number;
       pageToken?: string;
     } = {
-      textQuery: normalizedQuery,
+      textQuery,
       pageSize: PAGE_SIZE,
     };
 
@@ -156,12 +366,12 @@ export async function searchBusinesses(
 
     let parsed: z.infer<typeof googlePlaceSearchResponseSchema>;
     try {
-      const json = await googlePlacesFetchJson<unknown>(url, {
+      const json = await googlePlacesFetchJson<unknown>(SEARCH_TEXT_URL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "X-Goog-Api-Key": apiKey,
-          "X-Goog-FieldMask": fieldMask,
+          "X-Goog-FieldMask": SEARCH_TEXT_FIELD_MASK,
         },
         body: JSON.stringify(requestBody),
       });
@@ -171,7 +381,7 @@ export async function searchBusinesses(
         throw error;
       }
       console.warn(
-        `[google-places] page ${page} failed, keeping earlier pages`,
+        `[google-places] "${queryLabel}" page ${page} failed, keeping earlier pages`,
         error instanceof Error ? error.message : String(error)
       );
       break;
@@ -180,20 +390,52 @@ export async function searchBusinesses(
     const pagePlaces = parsed.places ?? [];
     allPlaces.push(...pagePlaces);
     console.log(
-      `[google-places] page${page} resultCount=${pagePlaces.length} hasNextPageToken=${Boolean(
+      `[google-places] "${queryLabel}" page${page} resultCount=${pagePlaces.length} hasNextPageToken=${Boolean(
         parsed.nextPageToken
       )}`
     );
 
     nextPageToken = parsed.nextPageToken ?? null;
-    if (!nextPageToken || allPlaces.length >= cappedTarget) {
+    if (!nextPageToken) {
       break;
     }
   }
 
+  return allPlaces;
+}
+
+export async function searchBusinesses(
+  query: string,
+  targetCount = DEFAULT_TARGET_COUNT
+): Promise<NormalizedPlaceLead[]> {
+  const apiKey = process.env.GOOGLE_MAPS_API_KEY;
+  if (!apiKey) {
+    throw new Error("Missing GOOGLE_MAPS_API_KEY.");
+  }
+
+  const normalizedQuery = query.trim();
+  const cappedTarget = Math.max(1, Math.min(targetCount, DEFAULT_TARGET_COUNT));
+
+  const location = extractLocationFromQuery(normalizedQuery) ?? normalizedQuery;
+  const useMultiQuery = isDentalRelatedQuery(normalizedQuery);
+  const textQueries = useMultiQuery
+    ? buildDentalSearchQueries(location, normalizedQuery)
+    : [normalizedQuery];
+
+  console.log(
+    `[google-places] multiQuery=${useMultiQuery} queryCount=${textQueries.length} target=${cappedTarget}`
+  );
+
+  const perQueryResults = await Promise.all(
+    textQueries.map((textQuery) => searchTextQueryAllPages(textQuery, apiKey, textQuery))
+  );
+
+  const allPlaces = perQueryResults.flat();
   console.log(`[google-places] totalRawResults=${allPlaces.length}`);
 
-  const normalized = allPlaces
+  const geoFiltered = geoFilterPlaces(allPlaces, location);
+
+  const normalized = geoFiltered
     .map((place) => {
       try {
         return toLead(place);

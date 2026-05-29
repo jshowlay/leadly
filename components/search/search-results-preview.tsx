@@ -6,6 +6,7 @@ import {
   SEARCH_PREVIEW_VISIBLE_ROWS,
   type SearchPreviewRow,
 } from "@/lib/search-sample-preview";
+import { SITE } from "@/lib/site-config";
 
 function cityLabelFromLocation(location: string): string | null {
   const trimmed = location.trim();
@@ -128,7 +129,8 @@ export function SearchResultsPreview({ location, unlockFormId }: Props) {
           <strong>
             {remaining} more leads in {city}
           </strong>{" "}
-          — including full contact paths, opportunity estimates, and outreach drafts. One-time $49.
+          — including full contact paths, opportunity estimates, and outreach drafts. One-time{" "}
+          {SITE.leadPackPriceLabel}.
         </p>
         <button type="submit" form={unlockFormId} className="ds-unlock-btn">
           Unlock full pack →

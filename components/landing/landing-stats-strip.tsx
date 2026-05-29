@@ -1,8 +1,8 @@
 export function LandingStatsStrip() {
   const stats = [
-    { num: "50+", label: "scored leads per search" },
+    { num: "150", label: "scored leads per search" },
     { num: "200+", label: "agencies and freelancers" },
-    { num: "$49", label: "one-time, no subscription" },
+    { num: "$99", label: "one-time, no subscription" },
   ] as const;
 
   return (

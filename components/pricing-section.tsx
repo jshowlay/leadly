@@ -4,17 +4,18 @@ import Link from "next/link";
 import { Loader2 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useCallback, useState } from "react";
+import { SITE } from "@/lib/site-config";
 import "@/app/pricing-page.css";
 
 const STARTER_PLAN = {
   tierLabel: "STARTER",
-  price: "$49",
+  price: SITE.leadPackPriceLabel,
   billing: "One-time · no subscription",
   tagline: "Test one market before committing to a pipeline.",
   cta: "Get started",
   ctaHref: "/search",
   features: [
-    "50 scored dental practices",
+    `${SITE.leadPackCount} scored dental practices`,
     "Priority tiers + numeric scores",
     "Why-this-lead rationale per row",
     "Best contact path per lead",
